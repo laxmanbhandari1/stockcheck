@@ -726,29 +726,257 @@
         padding: 0 5px;
         line-height: 18px;
       }
+      .roster {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        max-height: 52vh;
+        overflow-y: auto;
+        margin-top: 6px;
+      }
+      .pp {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 8px;
+        border-radius: 16px;
+        background: var(--bg);
+        border: 1.5px solid var(--br);
+      }
+      .pp:active {
+        border-color: var(--pr);
+        background: var(--prs);
+      }
+      .pp b {
+        font-size: 15px;
+      }
+      .av2 {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--pr);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 20px;
+        font-family: Georgia, serif;
+      }
+      .who {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin: 6px 0 14px;
+      }
+      .dots {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .dots i {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid var(--pr);
+      }
+      .dots i.f {
+        background: var(--pr);
+      }
+      .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .pad button {
+        height: 56px;
+        border-radius: 16px;
+        background: var(--bg);
+        border: 1.5px solid var(--br);
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .pad button:active {
+        background: var(--prs);
+      }
+      .bk {
+        color: var(--pr);
+        font-weight: 600;
+        padding: 4px 0;
+      }
+      .card.dirty {
+        border-color: var(--gold);
+        background: color-mix(in srgb, var(--gs) 45%, var(--card));
+        box-shadow: 0 0 0 4px #c9a24d1f;
+      }
+      .card.dirty .tick {
+        background: var(--card);
+        border-color: var(--ok);
+        color: var(--ok);
+        animation: rdy 1.6s ease-in-out infinite;
+      }
+      @keyframes rdy {
+        50% {
+          box-shadow: 0 0 0 6px #16a87026;
+        }
+      }
+      .mt {
+        min-height: 26px;
+      }
+      .st .qv {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+        height: 46px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--tx);
+      }
+      .st .qv.e {
+        color: var(--mu);
+        font-weight: 500;
+        font-size: 16px;
+      }
+      .wq {
+        grid-column: 1/3;
+        width: 100%;
+        height: 44px;
+        border-radius: 13px;
+        border: 1.5px solid var(--br);
+        background: var(--bg);
+        color: var(--mu);
+        font-size: 14px;
+      }
+      .ubar {
+        position: fixed;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        z-index: 12;
+        padding: 8px 8px 8px 16px;
+        white-space: nowrap;
+        max-width: calc(100% - 20px);
+      }
+      .sh-bg {
+        position: fixed;
+        inset: 0;
+        background: #0009;
+        z-index: 40;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .sheet {
+        background: var(--card);
+        width: 100%;
+        max-width: 520px;
+        border-radius: 24px 24px 0 0;
+        padding: 16px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+        animation: su 0.2s;
+      }
+      @keyframes su {
+        from {
+          transform: translateY(40px);
+          opacity: 0;
+        }
+      }
+      .sh-t {
+        text-align: center;
+        color: var(--mu);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .sh-v {
+        text-align: center;
+        font-size: 34px;
+        font-weight: 800;
+        font-family: Georgia, serif;
+        margin: 2px 0 4px;
+      }
+      .wh {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        height: 220px;
+        margin-bottom: 10px;
+        isolation: isolate;
+      }
+      .wc {
+        position: relative;
+        z-index: 1;
+        width: 120px;
+        height: 220px;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scrollbar-width: none;
+        padding: 88px 0;
+        overscroll-behavior: contain;
+      }
+      .wc.narrow {
+        width: 80px;
+      }
+      .wc::-webkit-scrollbar {
+        display: none;
+      }
+      .wc div {
+        height: 44px;
+        line-height: 44px;
+        text-align: center;
+        font-size: 24px;
+        scroll-snap-align: center;
+        color: var(--mu);
+        cursor: pointer;
+      }
+      .wc div.on {
+        color: var(--tx);
+        font-weight: 800;
+      }
+      .band {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 88px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--prs);
+        z-index: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
     <div class="ov" id="login" hidden>
       <div class="lc">
-        <div style="font-size: 42px">🦞</div>
-        <h2 style="font-family: Georgia, serif; letter-spacing: 0.15em">
+        <div style="font-size: 42px; text-align: center">🦞</div>
+        <h2
+          style="
+            font-family: Georgia, serif;
+            letter-spacing: 0.15em;
+            text-align: center;
+          "
+        >
           THE SHELL
         </h2>
-        <p>Sign in to start today's stock check</p>
-        <input
-          id="ln"
-          inputmode="numeric"
-          placeholder="Staff number (e.g. 1042)"
-        />
-        <input
-          id="lm"
-          type="password"
-          inputmode="numeric"
-          placeholder="PIN (6+ digits)"
-        />
-        <button class="pb" id="lgo">Start checking →</button>
-        <p style="margin-top: 12px; font-size: 12px">
+        <div id="lw">
+          <p style="text-align: center">Who's checking today? Tap your name</p>
+          <div id="roster" class="roster"></div>
+        </div>
+        <div id="lp" hidden>
+          <button class="bk" id="lback">← Back</button>
+          <div class="who">
+            <span class="av2" id="lpav"></span><b id="lpn"></b
+            ><span class="b" id="lpr"></span>
+          </div>
+          <div class="dots" id="dots"></div>
+          <div class="pad" id="pad"></div>
+          <button class="pb" id="lgo">Log in</button>
+        </div>
+        <p style="margin-top: 12px; font-size: 12px; text-align: center">
           Forgot your PIN? Ask your manager or the boss.
         </p>
       </div>
@@ -814,16 +1042,38 @@
       ><button data-t="hist"><span>📅</span>History</button>
     </nav>
 
+    <div class="sh-bg" id="shb" hidden>
+      <div class="sheet">
+        <div class="sh-t" id="sht"></div>
+        <div class="sh-v" id="shv">0</div>
+        <div class="wh">
+          <div class="band"></div>
+          <div class="wc" id="w1"></div>
+          <div class="wc narrow" id="w2"></div>
+        </div>
+        <input id="shi" inputmode="decimal" placeholder="…or type a number" />
+        <div class="r" style="margin-top: 10px">
+          <button class="pb s" id="shc" style="margin: 0; flex: 1">
+            Cancel</button
+          ><button class="pb s" id="shx" style="margin: 0; flex: 1">
+            Clear</button
+          ><button class="pb" id="shs" style="margin: 0; flex: 1.5">Set</button>
+        </div>
+      </div>
+    </div>
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
       /* ===== THE SHELL – Kitchen Stock · Supabase version ===== */
-      const SUPABASE_URL = "https://ukzhutdvnfjkxbthsxag.supabase.co",
-        SUPABASE_KEY =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA";
+      const { SUPABASE_URL, SUPABASE_KEY } = window.APP_CONFIG || {
+        SUPABASE_URL: "https://ukzhutdvnfjkxbthsxag.supabase.co",
+        SUPABASE_KEY:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
+      };
       const $ = (s) => document.querySelector(s);
       if (SUPABASE_URL.includes("YOUR-PROJECT")) {
         document.body.innerHTML =
-          '<div style="padding:30px;font:16px system-ui"><h2>Setup needed</h2><p>Open <b>index.html</b> and paste your Supabase URL and anon key at the top of the script (see README.md).</p></div>';
+          '<div style="padding:30px;font:16px system-ui"><h2>Setup needed</h2><p>Open <b>config.js</b> and paste your Supabase URL and anon key (see README.md).</p></div>';
         throw new Error("Supabase not configured");
       }
       const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -918,6 +1168,7 @@
         day: { items: {}, log: [], pushes: [] },
         tab: "check",
         cat: "All",
+        prev: {},
       };
       const esc = (s) =>
         String(s ?? "").replace(
@@ -1036,11 +1287,35 @@
         rows.forEach((r) => (items[r.item_id] = fromRow(r)));
         return { items, log, pushes };
       }
+      async function loadPrev(d) {
+        const p = await q(
+          sb
+            .from("day_summary")
+            .select("day")
+            .lt("day", d)
+            .order("day", { ascending: false })
+            .limit(1),
+        );
+        if (!p[0]) return {};
+        const o = {};
+        (
+          await q(
+            sb
+              .from("stock_entries")
+              .select("item_id,cooked,raw,waste")
+              .eq("day", p[0].day),
+          )
+        ).forEach(
+          (r) =>
+            (o[r.item_id] = { cooked: r.cooked, raw: r.raw, waste: r.waste }),
+        );
+        return o;
+      }
       async function openDay(d) {
         S.date = d;
         $("#date").value = d;
         $("#list").innerHTML = '<div class="em">Loading…</div>';
-        S.day = await loadDay(d);
+        [S.day, S.prev] = await Promise.all([loadDay(d), loadPrev(d)]);
         renderAll();
       }
       function change(id, f, val) {
@@ -1077,11 +1352,11 @@
         fetchLog(S.date).then((l) => (S.day.log = l));
         return true;
       }
-      const saveAll = (quiet) =>
-        saveIds(
-          ITEMS.filter((i) => isDirty(i.id)).map((i) => i.id),
-          quiet,
-        );
+      const saveAll = (quiet) => {
+        const ids = ITEMS.filter((i) => isDirty(i.id)).map((i) => i.id);
+        ids.forEach((id) => change(id, "done", true));
+        return saveIds(ids, quiet);
+      };
       async function sendFinal() {
         if (
           !confirm(
@@ -1160,11 +1435,7 @@
         if (touched(r) && !+r.cooked && !+r.raw)
           m += '<span class="b d">Out of stock</span>';
         m += needB(i);
-        m += r.dirty
-          ? '<span class="b w">● Not saved yet</span>'
-          : r.by
-            ? '<span class="b g">☁ Saved</span>'
-            : "";
+        m += !r.dirty && r.by ? '<span class="b g">☁ Saved</span>' : "";
         return (
           m +
           (r.by
@@ -1192,15 +1463,20 @@
           o = UNITS.includes(v) ? UNITS : [...UNITS, v];
         return `<select class="un" data-u="${k}">${o.map((u) => `<option${u === v ? " selected" : ""}>${u}</option>`).join("")}</select>`;
       };
-      const stepper = (i, f, lab, k) =>
-        `<div><div class="lb">${lab}</div><div class="st"><button data-a="-" data-f="${f}">−</button><input data-f="${f}" inputmode="decimal" placeholder="0" value="${esc(R(i.id)[f])}">${unitSel(i, k)}<button data-a="+" data-f="${f}">+</button></div></div>`;
+      const qty = (i, f, lab, k) => {
+        const v = R(i.id)[f],
+          e = !has(v);
+        return `<div><div class="lb">${lab}</div><div class="st"><button class="qv${e ? " e" : ""}" data-a="pick" data-f="${f}">${e ? "Tap" : esc(v)}</button>${unitSel(i, k)}</div></div>`;
+      };
       function card(i) {
         const r = R(i.id),
-          d = isDirty(i.id);
-        return `<div class="card ${r.done ? "done" : ""} ${d ? "dirty" : ""}" data-id="${i.id}">${d ? SAVEBTN : ""}
- <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${i.cat}</div></div><button class="tick" data-a="done">✓</button></div>
- <div class="q2">${stepper(i, "cooked", "Cooked / Defrosted", "pu")}${stepper(i, "raw", "Live / Raw / Frozen", "ru")}</div>
- <div class="ex"><input data-f="use" type="date" value="${esc(r.use)}" title="Use-by / Prep date"><input data-f="note" placeholder="📝 Note (optional)" value="${esc(r.note)}"><input data-f="waste" inputmode="decimal" placeholder="☠ Dead / waste qty" value="${esc(r.waste)}" style="grid-column:1/3"></div>
+          d = isDirty(i.id),
+          w = r.waste,
+          pv = (S.prev[i.id] || {}).cooked;
+        return `<div class="card ${r.done ? "done" : ""} ${d ? "dirty" : ""}" data-id="${i.id}">
+ <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${i.cat}${has(pv) ? " · yesterday " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
+ <div class="q2">${qty(i, "cooked", "Cooked / Defrosted", "pu")}${qty(i, "raw", "Live / Raw / Frozen", "ru")}</div>
+ <div class="ex"><input data-f="use" type="date" value="${esc(r.use)}" title="Use-by / Prep date"><input data-f="note" placeholder="📝 Note (optional)" value="${esc(r.note)}"><button class="wq" data-a="pick" data-f="waste">${has(w) ? "☠ Dead / waste: " + esc(w) : "☠ Dead / waste qty"}</button></div>
  <div class="mt">${badges(i)}</div></div>`;
       }
       const rep = (id) => {
@@ -1211,7 +1487,6 @@
       function soft(c, id) {
         c.classList.add("dirty");
         c.classList.toggle("done", !!R(id).done);
-        showSave(c);
         c.querySelector(".mt").innerHTML = badges(
           ITEMS.find((i) => i.id === id),
         );
@@ -1524,33 +1799,31 @@
         if (!b) return;
         const id = b.closest(".card").dataset.id,
           a = b.dataset.a;
+        if (a === "pick") {
+          openPicker(id, b.dataset.f);
+          return;
+        }
         if (a === "save") {
-          saveIds([id]);
-          return;
-        }
-        if (a === "done") {
-          const v = !R(id).done;
-          change(id, "done", v);
-          rep(id);
-          if (v) pop(["✨", "🎉", "💪", "🔥", "👏"][(Math.random() * 5) | 0]);
-          if (ITEMS.every((i) => R(i.id).done)) {
-            pop("🏆");
-            toast("All items checked — amazing!");
+          if (!isDirty(id) && R(id).done) {
+            toast("Already saved ✓");
+            return;
           }
-          return;
+          change(id, "done", true);
+          saveIds([id]).then((ok) => {
+            if (ok) {
+              pop(["✨", "🎉", "💪", "🔥", "👏"][(Math.random() * 5) | 0]);
+              if (ITEMS.every((i) => R(i.id).done)) {
+                pop("🏆");
+                toast("All items checked — amazing!");
+              }
+            }
+          });
         }
-        const f = b.dataset.f,
-          cur = parseFloat(R(id)[f]) || 0,
-          n = Math.max(0, Math.round((cur + (a === "+" ? 1 : -1)) * 10) / 10);
-        change(id, f, String(n));
-        autoTick(id, f);
-        rep(id);
       };
       $("#list").oninput = (e) => {
         const c = e.target.closest(".card");
         if (c && e.target.dataset.f) {
           c.classList.add("dirty");
-          showSave(c);
         }
       };
       $("#list").onchange = (e) => {
@@ -1568,6 +1841,116 @@
         change(id, f, t.value.trim());
         autoTick(id, f);
         soft(c, id);
+      };
+      /* ---------- number picker (scroll wheel) ---------- */
+      let PK = null;
+      const WH = Array.from({ length: 301 }, (_, k) => String(k)),
+        FR = [".0", ".5"];
+      function wheel(el, vals, idx, onch) {
+        el.innerHTML = vals
+          .map((v, i) => `<div data-i="${i}">${v}</div>`)
+          .join("");
+        el.scrollTop = idx * 44;
+        let t;
+        const mark = () => {
+          const i = Math.max(
+            0,
+            Math.min(vals.length - 1, Math.round(el.scrollTop / 44)),
+          );
+          [...el.children].forEach((c, j) => c.classList.toggle("on", j === i));
+        };
+        mark();
+        el.onscroll = () => {
+          mark();
+          clearTimeout(t);
+          t = setTimeout(onch, 100);
+        };
+        el.onclick = (e) => {
+          const d = e.target.closest("div[data-i]");
+          if (d) el.scrollTo({ top: d.dataset.i * 44, behavior: "smooth" });
+        };
+      }
+      function fromWheels() {
+        if (!PK || PK.lock) return;
+        const w = Math.min(300, Math.round($("#w1").scrollTop / 44)),
+          f = Math.round($("#w2").scrollTop / 44),
+          v = w + (f ? 0.5 : 0);
+        $("#shi").value = String(v);
+        $("#shv").textContent = v;
+      }
+      function openPicker(id, f) {
+        const i = ITEMS.find((x) => x.id === id),
+          pv = (S.prev[id] || {})[f];
+        let v = parseFloat(R(id)[f]);
+        if (isNaN(v)) v = parseFloat(pv);
+        if (isNaN(v)) v = 0;
+        PK = { id, f, lock: true };
+        $("#sht").textContent =
+          i.name +
+          " · " +
+          {
+            cooked: "Cooked / Defrosted",
+            raw: "Live / Raw / Frozen",
+            waste: "Dead / waste",
+          }[f] +
+          " (" +
+          (f === "raw" ? U(i, "ru") : U(i, "pu")) +
+          ")" +
+          (has(pv) ? " · yesterday " + pv : "");
+        $("#shb").hidden = false;
+        $("#shi").value = String(v);
+        $("#shv").textContent = v;
+        wheel($("#w1"), WH, Math.min(300, Math.floor(v)), fromWheels);
+        wheel(
+          $("#w2"),
+          FR,
+          Math.abs(v - Math.floor(v) - 0.5) < 1e-9 ? 1 : 0,
+          fromWheels,
+        );
+        setTimeout(() => {
+          PK.lock = false;
+        }, 250);
+      }
+      const closePicker = () => {
+        $("#shb").hidden = true;
+        PK = null;
+      };
+      $("#shi").oninput = (e) => {
+        if (!PK) return;
+        const v = parseFloat(e.target.value.replace(",", "."));
+        if (isNaN(v)) {
+          $("#shv").textContent = "–";
+          return;
+        }
+        $("#shv").textContent = v;
+        PK.lock = true;
+        $("#w1").scrollTop = Math.min(300, Math.floor(v)) * 44;
+        $("#w2").scrollTop =
+          (Math.abs(v - Math.floor(v) - 0.5) < 1e-9 ? 1 : 0) * 44;
+        setTimeout(() => {
+          if (PK) PK.lock = false;
+        }, 300);
+      };
+      $("#shs").onclick = () => {
+        const v = parseFloat($("#shi").value.replace(",", "."));
+        if (isNaN(v) || v < 0) {
+          toast("Enter a number");
+          return;
+        }
+        change(PK.id, PK.f, String(v));
+        const id = PK.id;
+        closePicker();
+        rep(id);
+      };
+      $("#shx").onclick = () => {
+        change(PK.id, PK.f, "");
+        const id = PK.id;
+        closePicker();
+        rep(id);
+      };
+      $("#shc").onclick = closePicker;
+      $("#shb").onclick = (e) => {
+        if (e.target.id === "shb") closePicker();
       };
       $("#sv").onclick = () => saveAll();
       $("#push").onclick = sendFinal;
@@ -1658,10 +2041,111 @@
       });
 
       /* ---------- sign in / out ---------- */
-      const showLogin = () => {
-        $("#login").hidden = false;
-        $("#lm").value = "";
+      let PICK = null,
+        PIN = "";
+      const dots = () => {
+        $("#dots").innerHTML = Array.from(
+          { length: Math.max(6, PIN.length) },
+          (_, i) => `<i class="${i < PIN.length ? "f" : ""}"></i>`,
+        ).join("");
       };
+      async function showLogin() {
+        $("#login").hidden = false;
+        $("#lp").hidden = true;
+        $("#lw").hidden = false;
+        PIN = "";
+        $("#roster").innerHTML = '<div class="em">Loading…</div>';
+        const { data, error } = await sb.rpc("login_roster");
+        if (error) {
+          $("#roster").innerHTML =
+            '<div class="em" style="grid-column:1/3">Could not load names.<br><small>' +
+            esc(error.message) +
+            "</small></div>";
+          return;
+        }
+        $("#roster").innerHTML =
+          (data || [])
+            .map(
+              (u) =>
+                `<button class="pp" data-n="${esc(u.staff_num)}" data-name="${esc(u.full_name)}" data-r="${u.role}"><span class="av2">${esc(u.full_name[0].toUpperCase())}</span><b>${esc(u.full_name)}</b><span class="b">${ROLE[u.role]}</span></button>`,
+            )
+            .join("") ||
+          '<div class="em" style="grid-column:1/3">No accounts yet.</div>';
+      }
+      $("#roster").onclick = (e) => {
+        const b = e.target.closest(".pp");
+        if (!b) return;
+        PICK = { num: b.dataset.n, name: b.dataset.name, role: b.dataset.r };
+        PIN = "";
+        $("#lpav").textContent = PICK.name[0].toUpperCase();
+        $("#lpn").textContent = PICK.name;
+        $("#lpr").textContent = ROLE[PICK.role];
+        $("#lw").hidden = true;
+        $("#lp").hidden = false;
+        dots();
+      };
+      $("#lback").onclick = () => {
+        PIN = "";
+        $("#lp").hidden = true;
+        $("#lw").hidden = false;
+      };
+      $("#pad").innerHTML = [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "⌫",
+        "0",
+        "✓",
+      ]
+        .map((k) => `<button data-k="${k}">${k}</button>`)
+        .join("");
+      $("#pad").onclick = (e) => {
+        const k = e.target.dataset.k;
+        if (!k) return;
+        if (k === "✓") return doLogin();
+        if (k === "⌫") PIN = PIN.slice(0, -1);
+        else if (PIN.length < 12) PIN += k;
+        dots();
+      };
+      addEventListener("keydown", (e) => {
+        if ($("#login").hidden || $("#lp").hidden) return;
+        if (/^\d$/.test(e.key) && PIN.length < 12) {
+          PIN += e.key;
+          dots();
+        } else if (e.key === "Backspace") {
+          PIN = PIN.slice(0, -1);
+          dots();
+        } else if (e.key === "Enter") doLogin();
+      });
+      async function doLogin() {
+        if (!PICK || !PIN) {
+          toast("Enter your PIN");
+          return;
+        }
+        const b = $("#lgo");
+        b.disabled = true;
+        b.textContent = "Signing in…";
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: PICK.num + "@theshell.staff",
+          password: PIN,
+        });
+        b.disabled = false;
+        b.textContent = "Log in";
+        PIN = "";
+        dots();
+        if (error) {
+          toast("Wrong PIN, try again");
+          return;
+        }
+        await afterAuth(data.session);
+      }
+      $("#lgo").onclick = doLogin;
       function head() {
         const h = new Date().getHours();
         $("#hi").textContent =
@@ -1742,28 +2226,6 @@
           )
           .subscribe();
       }
-      $("#lgo").onclick = async () => {
-        const n = $("#ln").value.trim(),
-          pin = $("#lm").value.trim();
-        if (!n || !pin) {
-          toast("Enter staff number and PIN");
-          return;
-        }
-        const b = $("#lgo");
-        b.disabled = true;
-        b.textContent = "Signing in…";
-        const { data, error } = await sb.auth.signInWithPassword({
-          email: n + "@theshell.staff",
-          password: pin,
-        });
-        b.disabled = false;
-        b.textContent = "Start checking →";
-        if (error) {
-          toast("Wrong staff number or PIN");
-          return;
-        }
-        await afterAuth(data.session);
-      };
       $("#out").onclick = async () => {
         if (pending() && !confirm("You have unsaved changes. Sign out anyway?"))
           return;
