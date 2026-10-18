@@ -1,0 +1,5 @@
+const { SUPABASE_URL, SUPABASE_KEY } = window.APP_CONFIG || {
+        SUPABASE_URL: "https://ukzhutdvnfjkxbthsxag.supabase.co",
+        SUPABASE_KEY:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
+      };

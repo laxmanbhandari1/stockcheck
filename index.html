@@ -947,7 +947,95 @@
         z-index: 0;
         pointer-events: none;
       }
+      .card .tick {
+        visibility: hidden;
+      }
+      .card.dirty .tick {
+        visibility: visible;
+      }
+      .card > .r:first-child {
+        min-height: 46px;
+      }
+      body {
+        padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .tile {
+        background: var(--card);
+        border-radius: 20px;
+        padding: 18px 14px;
+        text-align: left;
+        box-shadow: var(--sh);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        border: 1.5px solid transparent;
+        min-height: 112px;
+      }
+      .tile:active {
+        border-color: var(--pr);
+        background: var(--prs);
+      }
+      .tile .ti {
+        font-size: 30px;
+      }
+      .tile b {
+        font-size: 16px;
+        font-family: Georgia, serif;
+      }
+      .tile small {
+        color: var(--mu);
+        font-size: 12px;
+      }
+      .tile.soon {
+        opacity: 0.6;
+      }
+      .pgbar {
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 6;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 0 10px;
+        margin: -4px 0 4px;
+      }
+      .pgbar b {
+        font-family: Georgia, serif;
+        font-size: 18px;
+      }
+      .netb {
+        background: var(--was);
+        color: var(--wa);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .banner {
+        background: var(--gs);
+        border: 1.5px solid var(--gold);
+        border-radius: 16px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .fin {
+        margin-top: 18px;
+        text-align: center;
+      }
+      .fin h3 {
+        font-size: 17px;
+      }
     </style>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" />
   </head>
   <body>
     <div class="ov" id="login" hidden>
@@ -975,72 +1063,19 @@
           <div class="dots" id="dots"></div>
           <div class="pad" id="pad"></div>
           <button class="pb" id="lgo">Log in</button>
+          <button
+            class="bk"
+            id="forgot"
+            style="display: block; margin: 10px auto 0"
+          >
+            Forgot PIN?
+          </button>
         </div>
         <p style="margin-top: 12px; font-size: 12px; text-align: center">
-          Forgot your PIN? Ask your manager or the boss.
+          Tap your name to sign in.
         </p>
       </div>
     </div>
-
-    <div class="hero">
-      <div class="wrap">
-        <div class="brand">
-          🐚 THE SHELL<small>Seafood Restaurant · Kitchen Stock</small>
-        </div>
-        <div class="r">
-          <div class="av" id="av">?</div>
-          <div>
-            <div class="hi" id="hi">Hello</div>
-            <div class="big" id="gr">Stock check</div>
-          </div>
-          <div class="sp"></div>
-          <button class="ib" id="th" title="Dark / light">🌓</button
-          ><button class="ib" id="out" title="Switch user">⎋</button>
-        </div>
-        <div class="prog">
-          <div class="ring" id="ring"><b id="pc">0%</b></div>
-          <div class="pl">
-            <strong id="cnt">0 / 0 checked</strong><br /><span id="lv"
-              >⭐ Level 1 · 0 XP</span
-            ><br /><input type="date" class="dt" id="date" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <main>
-      <div class="ubar" id="ubar" hidden>
-        <span>✏️ <b id="svn">0</b> unsaved</span
-        ><button id="sv">✓ Save all</button>
-      </div>
-      <section id="v-check">
-        <div class="tools">
-          <input id="q" placeholder="🔍 Search item…" /><select
-            id="sf"
-            style="width: auto"
-          >
-            <option value="all">All</option>
-            <option value="todo">To do</option>
-            <option value="done">Done</option>
-            <option value="alert">⚠ Alerts</option>
-          </select>
-        </div>
-        <div class="chips" id="chips"></div>
-        <div id="list"></div>
-      </section>
-      <section id="v-sum" hidden></section>
-      <section id="v-log" hidden></section>
-      <section id="v-hist" hidden></section>
-      <section id="v-par" hidden></section>
-      <section id="v-team" hidden></section>
-    </main>
-    <button class="fab" id="push" hidden></button>
-    <nav id="nav">
-      <button data-t="check" class="on"><span>📋</span>Check</button
-      ><button data-t="sum"><span>📊</span>Summary</button
-      ><button data-t="log"><span>🕵️</span>Activity</button
-      ><button data-t="hist"><span>📅</span>History</button>
-    </nav>
 
     <div class="sh-bg" id="shb" hidden>
       <div class="sheet">
@@ -1061,11 +1096,78 @@
         </div>
       </div>
     </div>
+    <div class="ubar" id="ubar" hidden>
+      <span>✏️ <b id="svn">0</b> unsaved</span
+      ><button id="sv">✓ Save all</button>
+    </div>
+    <div class="hero">
+      <div class="wrap">
+        <div class="brand">
+          🐚 THE SHELL<small>Seafood Restaurant · Kitchen Stock</small>
+        </div>
+        <div class="r">
+          <div class="av" id="av">?</div>
+          <div>
+            <div class="hi" id="hi">Hello</div>
+            <div class="big" id="gr">Kitchen</div>
+          </div>
+          <div class="sp"></div>
+          <button class="ib" id="th" title="Dark / light">🌓</button
+          ><button class="ib" id="out" title="Sign out">⎋</button>
+        </div>
+        <div class="prog" id="prog" hidden>
+          <div class="ring" id="ring"><b id="pc">0%</b></div>
+          <div class="pl">
+            <strong id="cnt">0 / 0 counted</strong><br /><span id="lv"
+              >⭐ Level 1 · 0 XP</span
+            ><br /><input type="date" class="dt" id="date" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <main>
+      <div class="pgbar" id="pgbar" hidden>
+        <button class="bk" id="back">‹ Home</button><b id="ptitle"></b>
+      </div>
+      <div class="netb" id="net" hidden>
+        ⚠ No signal — your changes stay on this phone and save when you are back
+        online.
+      </div>
+      <section id="v-home"></section>
+      <section id="v-check" hidden>
+        <div class="tools">
+          <input id="q" placeholder="🔍 Search item…" /><select
+            id="sf"
+            style="width: auto"
+          >
+            <option value="all">All</option>
+            <option value="todo">To do</option>
+            <option value="done">Counted</option>
+            <option value="alert">⚠ Alerts</option>
+          </select>
+        </div>
+        <div class="chips" id="chips"></div>
+        <div id="list"></div>
+        <div id="fin"></div>
+      </section>
+      <section id="v-toilet" hidden></section>
+      <section id="v-sum" hidden></section>
+      <section id="v-par" hidden></section>
+      <section id="v-items" hidden></section>
+      <section id="v-log" hidden></section>
+      <section id="v-hist" hidden></section>
+      <section id="v-team" hidden></section>
+      <section id="v-pin" hidden></section>
+    </main>
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
-      /* ===== THE SHELL – Kitchen Stock · Supabase version ===== */
-      const { SUPABASE_URL, SUPABASE_KEY } = window.APP_CONFIG || {
+      /* ===== THE SHELL – Kitchen Stock · v2 (Supabase) ===== */
+      const {
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        REMIND_AT = "21:30",
+      } = window.APP_CONFIG || {
         SUPABASE_URL: "https://ukzhutdvnfjkxbthsxag.supabase.co",
         SUPABASE_KEY:
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
@@ -1133,20 +1235,6 @@
         "item",
       ];
       const ROLE = { owner: "Boss", manager: "Manager", staff: "Employee" };
-      const NAV = {
-        staff: [
-          ["check", "📋", "Check"],
-          ["sum", "🍳", "To prep"],
-        ],
-        manager: [
-          ["check", "📋", "Check"],
-          ["sum", "📊", "Summary"],
-          ["par", "🎯", "Targets"],
-          ["log", "🕵️", "Activity"],
-          ["hist", "📅", "History"],
-        ],
-      };
-      NAV.owner = [...NAV.manager, ["team", "👥", "Team"]];
       const LBL = {
         cooked: "Cooked/Defrosted",
         raw: "Live/Raw/Frozen",
@@ -1156,19 +1244,33 @@
         pu: "Cooked unit",
         ru: "Raw unit",
       };
+      const TITLES = {
+        home: "Home",
+        check: "Daily stock check",
+        toilet: "Toilet check",
+        sum: "Summary",
+        par: "Targets",
+        items: "Items",
+        log: "Activity",
+        hist: "History",
+        team: "Team",
+        pin: "My PIN",
+      };
       let ITEMS = [],
-        CATS = ["All"],
+        ALL = [],
+        AREAS = ["All"],
         PAR = {},
         EMAIL = "";
-      const today = () =>
-        new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+      const lon = { timeZone: "Europe/London" };
+      const today = () => new Date().toLocaleDateString("en-CA", lon);
       let S = {
         user: null,
         date: today(),
         day: { items: {}, log: [], pushes: [] },
-        tab: "check",
+        tab: "home",
         cat: "All",
         prev: {},
+        force: false,
       };
       const esc = (s) =>
         String(s ?? "").replace(
@@ -1191,20 +1293,27 @@
       const num = (v) =>
         has(v) && !isNaN(parseFloat(v)) ? parseFloat(v) : null;
       const q = async (p) => (await p).data || [];
-      const ico = (i) => IC[i.name] || E[i.cat];
+      const areaOf = (i) => i.area || i.cat;
+      const ico = (i) => IC[i.name] || E[i.cat] || "📦";
       const R = (id) => S.day.items[id] || {};
       const U = (i, k) => R(i.id)[k] || i[k];
-      const nameOf = (id) => (ITEMS.find((i) => i.id === id) || {}).name || id;
+      const nameOf = (id) => (ALL.find((i) => i.id === id) || {}).name || id;
       const isMgr = () => S.user && S.user.role !== "staff";
       const touched = (r) => has(r.cooked) || has(r.raw);
       const isDirty = (id) => !!R(id).dirty;
       const pending = () => ITEMS.filter((i) => isDirty(i.id)).length;
+      const ordered = () =>
+        [...ITEMS].sort(
+          (a, b) =>
+            AREAS.indexOf(areaOf(a)) - AREAS.indexOf(areaOf(b)) ||
+            a.sort - b.sort,
+        );
       function toast(m) {
         const t = document.createElement("div");
         t.className = "toast";
         t.textContent = m;
         document.body.appendChild(t);
-        setTimeout(() => t.remove(), 2400);
+        setTimeout(() => t.remove(), 2600);
       }
       function pop(e) {
         const p = document.createElement("div");
@@ -1311,11 +1420,32 @@
         );
         return o;
       }
+      /* drafts survive a reload or a lost signal */
+      const DK = (d) => `sq:draft:${S.user.id}:${d}`;
+      function persist() {
+        try {
+          const o = {};
+          ITEMS.forEach((i) => {
+            const r = S.day.items[i.id];
+            if (r && r.dirty) o[i.id] = r;
+          });
+          Object.keys(o).length
+            ? localStorage.setItem(DK(S.date), JSON.stringify(o))
+            : localStorage.removeItem(DK(S.date));
+        } catch (e) {}
+      }
+      function restore(day, d) {
+        try {
+          Object.entries(
+            JSON.parse(localStorage.getItem(DK(d)) || "{}"),
+          ).forEach(([id, r]) => (day.items[id] = r));
+        } catch (e) {}
+      }
       async function openDay(d) {
         S.date = d;
         $("#date").value = d;
-        $("#list").innerHTML = '<div class="em">Loading…</div>';
         [S.day, S.prev] = await Promise.all([loadDay(d), loadPrev(d)]);
+        restore(S.day, d);
         renderAll();
       }
       function change(id, f, val) {
@@ -1326,6 +1456,7 @@
         r.by = S.user.name;
         r.num = S.user.num;
         r.at = Date.now();
+        persist();
       }
       async function saveIds(ids, quiet) {
         ids = ids.filter((id) => S.day.items[id]);
@@ -1338,16 +1469,16 @@
           )
           .select();
         if (error) {
-          toast("Save failed: " + error.message);
+          toast(
+            navigator.onLine
+              ? "Save failed: " + error.message
+              : "No signal — kept on this phone, will save when you are back online",
+          );
           return false;
         }
         data.forEach((r) => (S.day.items[r.item_id] = fromRow(r)));
-        ids.forEach((id) => {
-          rep(id);
-          document
-            .querySelector(`.card[data-id="${id}"]`)
-            ?.classList.add("flash");
-        });
+        persist();
+        ids.forEach(rep);
         if (!quiet) toast(ids.length > 1 ? "All saved ✓" : "Saved ✓");
         fetchLog(S.date).then((l) => (S.day.log = l));
         return true;
@@ -1365,31 +1496,52 @@
         )
           return;
         if (!EMAIL) {
-          toast("Save the report email in the Summary tab first");
+          toast("Save the report email in Summary first");
           return;
         }
-        if (!(await saveAll(true))) return;
-        const b = $("#push");
-        b.disabled = true;
+        const b = $("#finb");
+        if (b) {
+          b.disabled = true;
+          b.textContent = "Sending…";
+        }
+        if (!(await saveAll(true))) {
+          renderFin();
+          return;
+        }
         const { data, error } = await sb.functions.invoke("send-report", {
           body: { day: S.date },
         });
-        b.disabled = false;
         if (error || !data || data.error) {
           toast(
             "Sending failed: " +
               ((data && data.error) || (error && error.message) || "unknown"),
           );
+          renderFin();
           return;
         }
         S.day.log = await fetchLog(S.date);
         S.day.pushes = await fetchReports(S.date);
-        pushBar();
+        renderFin();
         pop("🚀");
         toast("Final report sent 📧 to " + data.to);
       }
 
-      /* ---------- cards ---------- */
+      /* ---------- items & cards ---------- */
+      async function loadItems() {
+        const r = await q(sb.from("items").select("*").order("sort"));
+        ALL = r.map((x) => ({
+          id: x.id,
+          cat: x.cat,
+          area: x.area || x.cat,
+          name: x.name,
+          pu: x.pu,
+          ru: x.ru,
+          sort: x.sort,
+          active: x.active !== false,
+        }));
+        ITEMS = ALL.filter((i) => i.active);
+        AREAS = ["All", ...new Set(ITEMS.map(areaOf))];
+      }
       const need = (i) => {
         const p = PAR[i.id] || {},
           r = R(i.id),
@@ -1435,12 +1587,11 @@
         if (touched(r) && !+r.cooked && !+r.raw)
           m += '<span class="b d">Out of stock</span>';
         m += needB(i);
-        m += !r.dirty && r.by ? '<span class="b g">☁ Saved</span>' : "";
         return (
           m +
           (r.by
             ? `<span>✏️ ${esc(r.by)} (#${esc(r.num)}) · ${tm(r.at)}</span>`
-            : "<span>Not touched yet</span>")
+            : "<span>Not counted yet</span>")
         );
       }
       const isAlert = (i) => {
@@ -1451,12 +1602,6 @@
           need(i).c ||
           need(i).r
         );
-      };
-      const SAVEBTN =
-        '<button class="sb" data-a="save">✓ Save changes</button>';
-      const showSave = (c) => {
-        if (!c.querySelector(".sb"))
-          c.insertAdjacentHTML("afterbegin", SAVEBTN);
       };
       const unitSel = (i, k) => {
         const v = U(i, k),
@@ -1473,57 +1618,53 @@
           d = isDirty(i.id),
           w = r.waste,
           pv = (S.prev[i.id] || {}).cooked;
-        return `<div class="card ${r.done ? "done" : ""} ${d ? "dirty" : ""}" data-id="${i.id}">
- <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${i.cat}${has(pv) ? " · yesterday " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
+        return `<div class="card ${d ? "dirty" : ""}" data-id="${i.id}">
+ <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${esc(areaOf(i))}${has(pv) ? " · yesterday " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
  <div class="q2">${qty(i, "cooked", "Cooked / Defrosted", "pu")}${qty(i, "raw", "Live / Raw / Frozen", "ru")}</div>
  <div class="ex"><input data-f="use" type="date" value="${esc(r.use)}" title="Use-by / Prep date"><input data-f="note" placeholder="📝 Note (optional)" value="${esc(r.note)}"><button class="wq" data-a="pick" data-f="waste">${has(w) ? "☠ Dead / waste: " + esc(w) : "☠ Dead / waste qty"}</button></div>
  <div class="mt">${badges(i)}</div></div>`;
       }
       const rep = (id) => {
-        const c = document.querySelector(`.card[data-id="${id}"]`);
-        if (c) c.outerHTML = card(ITEMS.find((i) => i.id === id));
+        const c = document.querySelector(`.card[data-id="${id}"]`),
+          i = ITEMS.find((x) => x.id === id);
+        if (c && i) c.outerHTML = card(i);
         stats();
       };
       function soft(c, id) {
         c.classList.add("dirty");
-        c.classList.toggle("done", !!R(id).done);
         c.querySelector(".mt").innerHTML = badges(
           ITEMS.find((i) => i.id === id),
         );
         stats();
       }
-      const autoTick = (id, f) => {
-        if ((f === "cooked" || f === "raw") && !R(id).done) {
-          change(id, "done", true);
-          pop("✓");
-        }
-      };
       function renderList() {
         const qv = $("#q").value.toLowerCase(),
           sf = $("#sf").value;
         let h = "",
           last = "";
-        ITEMS.filter(
-          (i) =>
-            (S.cat === "All" || i.cat === S.cat) &&
-            i.name.toLowerCase().includes(qv) &&
-            (sf === "all" ||
-              (sf === "done"
-                ? R(i.id).done
-                : sf === "todo"
-                  ? !R(i.id).done
-                  : isAlert(i))),
-        ).forEach((i) => {
-          if (S.cat === "All" && i.cat !== last) {
-            h += `<div class="ch">${E[i.cat]} ${i.cat}</div>`;
-            last = i.cat;
-          }
-          h += card(i);
-        });
+        ordered()
+          .filter(
+            (i) =>
+              (S.cat === "All" || areaOf(i) === S.cat) &&
+              i.name.toLowerCase().includes(qv) &&
+              (sf === "all" ||
+                (sf === "done"
+                  ? R(i.id).done
+                  : sf === "todo"
+                    ? !R(i.id).done
+                    : isAlert(i))),
+          )
+          .forEach((i) => {
+            if (S.cat === "All" && areaOf(i) !== last) {
+              h += `<div class="ch">📍 ${esc(areaOf(i))}</div>`;
+              last = areaOf(i);
+            }
+            h += card(i);
+          });
         $("#list").innerHTML = h || '<div class="em">Nothing here 🎉</div>';
-        $("#chips").innerHTML = CATS.map(
+        $("#chips").innerHTML = AREAS.map(
           (c) =>
-            `<button class="chip ${c === S.cat ? "on" : ""}" data-c="${c}">${c === "All" ? "All" : E[c] + " " + c}</button>`,
+            `<button class="chip ${c === S.cat ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`,
         ).join("");
       }
       function stats() {
@@ -1533,31 +1674,33 @@
           xp = n * 10;
         $("#ring").style.setProperty("--p", p);
         $("#pc").textContent = p + "%";
-        $("#cnt").textContent = `${n} / ${t} checked`;
+        $("#cnt").textContent = `${n} / ${t} counted`;
         $("#lv").textContent =
           `⭐ Level ${Math.floor(xp / 100) + 1} · ${xp} XP` +
           (t && n == t ? " 🏆" : "");
-        pushBar();
+        const k = pending();
+        $("#ubar").hidden = !k || S.tab !== "check";
+        $("#svn").textContent = k;
+        renderFin();
       }
-      function pushBar() {
-        const b = $("#push"),
-          n = pending(),
+      function renderFin() {
+        const n = pending(),
           p = S.day.pushes[0];
-        b.hidden = S.tab !== "check" || !S.user || !isMgr();
-        const ok = p && !n && !(S.day.log[0] && S.day.log[0].t > p.t);
-        b.className = "fab" + (ok ? " ok" : "");
-        b.textContent = ok
-          ? "✓ Final report sent · " + tm(p.t) + " (tap to resend)"
-          : "📧 Send final report" + (n ? ` (${n} unsaved)` : "");
-        $("#ubar").hidden = !n || S.tab !== "check";
-        $("#svn").textContent = n;
+        if (!isMgr()) {
+          $("#fin").innerHTML =
+            '<div class="pn fin"><h3>All counted?</h3><div class="sub">Saves everything you changed, then takes you home.</div><button class="pb" id="finb">✓ Finish</button></div>';
+          return;
+        }
+        const sent = p && !n && !(S.day.log[0] && S.day.log[0].t > p.t);
+        $("#fin").innerHTML =
+          `<div class="pn fin"><h3>${sent ? "✓ Final report sent" : "Finished counting?"}</h3><div class="sub">${sent ? "Sent at " + tm(p.t) + " to " + esc(p.to) : "Saves all changes, then emails the final report once."}</div><button class="pb" id="finb">${sent ? "Send again" : "📧 Save & send final report"}</button></div>`;
       }
       const renderAll = () => {
         stats();
         renderList();
       };
 
-      /* ---------- other tabs ---------- */
+      /* ---------- pages ---------- */
       function prepPanel() {
         const rows = [],
           nc = [];
@@ -1585,6 +1728,77 @@
             : "")
         );
       }
+      function listText() {
+        const L = [];
+        ITEMS.forEach((i) => {
+          const n = need(i);
+          if (n.c) L.push(`${i.name}: cook +${n.c} ${U(i, "pu")}`);
+          if (n.r) L.push(`${i.name}: restock +${n.r} ${U(i, "ru")}`);
+        });
+        return (
+          `THE SHELL – to cook / restock ${S.date}\n` +
+          (L.join("\n") || "Nothing needed")
+        );
+      }
+      async function homeView() {
+        const n = pending(),
+          t = ITEMS.length,
+          done = ITEMS.filter((i) => R(i.id).done).length;
+        let reqs = 0;
+        if (S.user.role === "owner")
+          reqs = (
+            await q(sb.from("pin_requests").select("id").eq("handled", false))
+          ).length;
+        const late =
+          S.date === today() &&
+          new Date().toLocaleTimeString("en-GB", {
+            ...lon,
+            hour: "2-digit",
+            minute: "2-digit",
+          }) >= REMIND_AT &&
+          done < t;
+        const T = [
+          [
+            "check",
+            "📋",
+            "Daily stock check",
+            `${done} / ${t} counted ${S.date === today() ? "today" : S.date}`,
+          ],
+          ["toilet", "🚻", "Toilet check", "Coming soon"],
+        ];
+        if (!isMgr()) T.push(["sum", "🍳", "To prep", "What to cook now"]);
+        else
+          T.push(
+            ["sum", "📊", "Summary", "Today at a glance"],
+            ["par", "🎯", "Targets", "Minimum stock"],
+            ["items", "🧾", "Items", "Add, rename, reorder"],
+            ["log", "🕵️", "Activity", "Who changed what"],
+            ["hist", "📅", "History", "Past days & waste"],
+          );
+        if (S.user.role === "owner")
+          T.push([
+            "team",
+            "👥",
+            "Team",
+            reqs
+              ? `🔔 ${reqs} PIN request${reqs > 1 ? "s" : ""}`
+              : "Accounts & PINs",
+          ]);
+        T.push(["pin", "🔑", "My PIN", "Change your PIN"]);
+        $("#v-home").innerHTML =
+          (late
+            ? `<div class="banner">⏰ Count not finished — ${t - done} item${t - done > 1 ? "s" : ""} left</div>`
+            : "") +
+          (n
+            ? `<div class="banner">✏️ ${n} unsaved change${n > 1 ? "s" : ""} — open the stock check to save</div>`
+            : "") +
+          `<div class="tiles">${T.map((x) => `<button class="tile ${x[0] === "toilet" ? "soon" : ""}" data-go="${x[0]}"><span class="ti">${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div>`;
+      }
+      const checkView = () => renderAll();
+      const toiletView = () => {
+        $("#v-toilet").innerHTML =
+          '<div class="pn"><h3>🚻 Toilet check</h3><div class="sub">Coming soon. Nothing here yet.</div></div>';
+      };
       function sumView() {
         if (!isMgr()) {
           $("#v-sum").innerHTML = prepPanel();
@@ -1600,11 +1814,11 @@
           .filter((l) => l.f === "done" && l.val)
           .forEach((l) => (lb[l.who] = (lb[l.who] || 0) + 1));
         const top = Object.entries(lb).sort((a, b) => b[1] - a[1]);
-        const cats = CATS.slice(1)
+        const cats = AREAS.slice(1)
           .map((c) => {
-            const a = ITEMS.filter((i) => i.cat === c),
+            const a = ITEMS.filter((i) => areaOf(i) === c),
               d = a.filter((i) => R(i.id).done).length;
-            return `<div style="margin-bottom:10px"><div class="r"><span>${E[c]} ${c}</span><span class="sp"></span><b>${d}/${a.length}</b></div><div class="bar"><i style="width:${(d / a.length) * 100}%"></i></div></div>`;
+            return `<div style="margin-bottom:10px"><div class="r"><span>📍 ${esc(c)}</span><span class="sp"></span><b>${d}/${a.length}</b></div><div class="bar"><i style="width:${(d / a.length) * 100}%"></i></div></div>`;
           })
           .join("");
         const list = (a) =>
@@ -1617,10 +1831,10 @@
                 .join("")
             : '<div class="sub">None 👍</div>';
         $("#v-sum").innerHTML =
-          `<div class="g3"><div class="kp"><b>${done}</b><small>Checked</small></div><div class="kp"><b style="color:var(--rd)">${out.length}</b><small>Out of stock</small></div><div class="kp"><b style="color:var(--wa)">${due.length}</b><small>Use-by due</small></div></div>${prepPanel()}
- <div class="pn"><h3>Progress by section</h3>${cats}</div><div class="pn"><h3>🚨 Out of stock</h3>${list(out)}</div><div class="pn"><h3>⏳ Use-by reached</h3>${list(due)}</div>
- <div class="pn"><h3>🏅 Top checkers</h3>${top.map((t, i) => `<div class="lg">${["🥇", "🥈", "🥉"][i] || "•"} <b>${esc(t[0])}</b> — ${t[1]} items</div>`).join("") || '<div class="sub">No checks yet</div>'}</div>
- <div class="pn"><h3>📧 Final report</h3><div class="sub" style="margin-bottom:6px">Sent only when you press the button. Separate several addresses with commas.</div><input id="to" placeholder="Manager's email" value="${esc(EMAIL)}"><button class="pb s" id="semail">Save email</button><button class="pb" id="mail">Send final report now</button><button class="pb s" id="csv">⬇ Download CSV</button></div>`;
+          `<div class="g3"><div class="kp"><b>${done}</b><small>Counted</small></div><div class="kp"><b style="color:var(--rd)">${out.length}</b><small>Out of stock</small></div><div class="kp"><b style="color:var(--wa)">${due.length}</b><small>Use-by due</small></div></div>${prepPanel()}<button class="pb s" id="copyl" style="margin:0 0 10px">📋 Copy cook / order list</button>
+ <div class="pn"><h3>Progress by area</h3>${cats}</div><div class="pn"><h3>🚨 Out of stock</h3>${list(out)}</div><div class="pn"><h3>⏳ Use-by reached</h3>${list(due)}</div>
+ <div class="pn"><h3>🏅 Top counters</h3>${top.map((t, i) => `<div class="lg">${["🥇", "🥈", "🥉"][i] || "•"} <b>${esc(t[0])}</b> — ${t[1]} items</div>`).join("") || '<div class="sub">Nothing counted yet</div>'}</div>
+ <div class="pn"><h3>📧 Report email</h3><div class="sub" style="margin-bottom:6px">The final report is sent from the end of the Daily stock check, only when you press the button. Separate several addresses with commas.</div><input id="to" placeholder="Manager's email" value="${esc(EMAIL)}"><button class="pb" id="semail">Save email</button><button class="pb s" id="csv">⬇ Download CSV</button></div>`;
       }
       async function logView() {
         const [lg, au] = await Promise.all([
@@ -1640,41 +1854,103 @@
           ),
         ]);
         const row = (w, n, t, x) =>
-          `<div class="lg"><b>${esc(w)}</b> <span class="b">#${esc(n)}</span> <span class="sub">${dtm(t)}</span>${x}</div>`;
+          `<div class="lg"><b>${esc(w)}</b> ${n ? `<span class="b">#${esc(n)}</span>` : ""} <span class="sub">${dtm(t)}</span>${x}</div>`;
         $("#v-log").innerHTML =
-          `<div class="pn"><h3>📧 Final reports sent</h3>${S.day.pushes.map((p) => row(p.who, "", p.t, `<br>${p.checked} checked → ${esc(p.to)}`)).join("") || '<div class="sub">Not sent yet</div>'}</div>
- <div class="pn"><h3>✏️ Changes on ${S.date}</h3>${S.day.log.map((l) => row(l.who, l.num, l.t, `<br>${esc(nameOf(l.id))} · ${l.f === "done" ? (l.val ? "✓ checked" : "unchecked") : `${LBL[l.f]}: <s>${esc(l.old || "empty")}</s> → <b>${esc(l.val || "empty")}</b>`}`)).join("") || '<div class="sub">No saved changes yet</div>'}</div>
+          `<div class="pn"><h3>📧 Final reports sent</h3>${S.day.pushes.map((p) => row(p.who, "", p.t, `<br>${p.checked} counted → ${esc(p.to)}`)).join("") || '<div class="sub">Not sent yet</div>'}</div>
+ <div class="pn"><h3>✏️ Changes on ${S.date}</h3>${S.day.log.map((l) => row(l.who, l.num, l.t, `<br>${esc(nameOf(l.id))} · ${l.f === "done" ? (l.val ? "✓ counted" : "unchecked") : `${LBL[l.f] || l.f}: <s>${esc(l.old || "empty")}</s> → <b>${esc(l.val || "empty")}</b>`}`)).join("") || '<div class="sub">No saved changes yet</div>'}</div>
  <div class="pn"><h3>🔐 Who opened the app</h3>${lg.map((l) => row(l.who, l.staff_num, +new Date(l.at), ` <span class="sub">${ROLE[l.role] || ""}</span>`)).join("") || '<div class="sub">No sign-ins</div>'}</div>
  <div class="pn"><h3>🛡 Admin actions</h3>${au.map((a) => row(a.who, a.staff_num, +new Date(a.at), `<br>${esc(a.message)}`)).join("") || '<div class="sub">None yet</div>'}</div>`;
       }
       async function histView() {
-        const d = await q(
-          sb
-            .from("day_summary")
-            .select("*")
-            .order("day", { ascending: false })
-            .limit(60),
+        const from = new Date(Date.now() - 6 * 864e5).toLocaleDateString(
+          "en-CA",
+          lon,
         );
+        const [d, w] = await Promise.all([
+          q(
+            sb
+              .from("day_summary")
+              .select("*")
+              .order("day", { ascending: false })
+              .limit(60),
+          ),
+          q(
+            sb
+              .from("stock_entries")
+              .select("item_id,waste")
+              .gte("day", from)
+              .gt("waste", 0),
+          ),
+        ]);
+        const tot = {};
+        w.forEach(
+          (r) => (tot[r.item_id] = (tot[r.item_id] || 0) + Number(r.waste)),
+        );
+        const rows = Object.entries(tot).sort((a, b) => b[1] - a[1]);
         $("#v-hist").innerHTML =
+          `<div class="pn"><h3>☠ Dead / waste · last 7 days</h3>${rows.map(([id, n]) => `<div class="lg"><b>${esc(nameOf(id))}</b> — ${n}</div>`).join("") || '<div class="sub">No waste recorded 👍</div>'}</div>` +
           d
             .map(
               (x) =>
-                `<div class="pn r"><div class="sp"><b>${new Date(x.day + "T00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</b><div class="sub">${x.checked}/${ITEMS.length} checked · ${esc(x.people) || "-"}</div><div class="bar"><i style="width:${(x.checked / ITEMS.length) * 100}%"></i></div></div><button class="b" style="padding:9px 16px;font-size:14px" data-o="${x.day}">Open</button></div>`,
+                `<div class="pn r"><div class="sp"><b>${new Date(x.day + "T00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</b><div class="sub">${x.checked}/${ITEMS.length} counted · ${esc(x.people) || "-"}</div><div class="bar"><i style="width:${Math.min(100, (x.checked / ITEMS.length) * 100)}%"></i></div></div><button class="b" style="padding:9px 16px;font-size:14px" data-o="${x.day}">Open</button></div>`,
             )
-            .join("") || '<div class="em">No saved days yet</div>';
+            .join("");
       }
       function parView() {
         $("#v-par").innerHTML =
           '<div class="pn"><h3>🎯 Minimum stock targets</h3><div class="sub">Set the minimum to have ready. Staff see "cook +N" when the count is below it.</div></div>' +
-          ITEMS.map((i) => {
-            const p = PAR[i.id] || {};
-            return `<div class="pn" style="padding:10px 12px"><div class="r"><span style="font-size:22px">${ico(i)}</span><b class="sp">${esc(i.name)}</b></div><div class="q2" style="margin-top:8px"><div><div class="lb">Min cooked (${i.pu})</div><input data-p="c" data-id="${i.id}" inputmode="decimal" value="${p.c ?? ""}"></div><div><div class="lb">Min raw (${i.ru})</div><input data-p="r" data-id="${i.id}" inputmode="decimal" value="${p.r ?? ""}"></div></div></div>`;
-          }).join("");
+          ordered()
+            .map((i) => {
+              const p = PAR[i.id] || {};
+              return `<div class="pn" style="padding:10px 12px"><div class="r"><span style="font-size:22px">${ico(i)}</span><b class="sp">${esc(i.name)}</b></div><div class="q2" style="margin-top:8px"><div><div class="lb">Min cooked (${i.pu})</div><input data-p="c" data-id="${i.id}" inputmode="decimal" value="${p.c ?? ""}"></div><div><div class="lb">Min raw (${i.ru})</div><input data-p="r" data-id="${i.id}" inputmode="decimal" value="${p.r ?? ""}"></div></div></div>`;
+            })
+            .join("");
+      }
+      async function itemsView() {
+        await loadItems();
+        const areas = [...new Set(ALL.map(areaOf))],
+          opts = (v) =>
+            (UNITS.includes(v) ? UNITS : [...UNITS, v])
+              .map((u) => `<option${u === v ? " selected" : ""}>${u}</option>`)
+              .join("");
+        $("#v-items").innerHTML =
+          `<datalist id="areas">${areas.map((a) => `<option value="${esc(a)}">`).join("")}</datalist>
+ <div class="pn"><h3>➕ Add item</h3><input id="ina" placeholder="Item name"><input id="inr" list="areas" placeholder="Area (e.g. Walk-in fridge)" style="margin-top:8px"><div class="r" style="margin-top:8px"><select id="inp">${opts("pcs")}</select><select id="inq">${opts("pcs")}</select></div><div class="sub">Units: cooked · raw</div><button class="pb" id="inadd">Add item</button></div>
+ <div class="pn"><div class="sub">Set each item's <b>Area</b> to where it is stored (Walk-in fridge, Freezer, Dry store…). The count list follows that order, so staff walk the kitchen once. Use ↑ ↓ to reorder. Hidden items keep their history.</div></div>` +
+          ALL.map(
+            (
+              i,
+            ) => `<div class="pn" data-i="${i.id}" style="padding:12px;${i.active ? "" : "opacity:.55"}"><div class="r"><span style="font-size:22px">${ico(i)}</span><input data-k="name" value="${esc(i.name)}"><button class="b" data-mv="-1" style="padding:10px 14px">↑</button><button class="b" data-mv="1" style="padding:10px 14px">↓</button></div>
+ <div class="lb" style="margin-top:8px">Area</div><input data-k="area" list="areas" value="${esc(areaOf(i))}"><div class="r" style="margin-top:8px"><select data-k="pu">${opts(i.pu)}</select><select data-k="ru">${opts(i.ru)}</select><button class="b ${i.active ? "d" : "g"}" data-tg="1" style="padding:10px 14px">${i.active ? "Hide" : "Show"}</button></div></div>`,
+          ).join("");
+      }
+      function pinView() {
+        $("#v-pin").innerHTML =
+          `<div class="pn"><h3>🔑 ${S.force ? "Choose your own PIN" : "Change my PIN"}</h3>${S.force ? '<div class="sub" style="margin-bottom:8px">Your PIN was set by the boss. Choose a private one to continue.</div>' : '<div class="lb">Current PIN</div><input id="pc0" type="password" inputmode="numeric" placeholder="Current PIN">'}<div class="lb" style="margin-top:10px">New PIN (6-12 digits)</div><input id="pc1" type="password" inputmode="numeric" placeholder="New PIN"><div class="lb" style="margin-top:10px">Repeat new PIN</div><input id="pc2" type="password" inputmode="numeric" placeholder="Repeat new PIN"><button class="pb" id="pcs">Save new PIN</button></div>`;
       }
       async function teamView() {
-        const us = await q(sb.from("profiles").select("*").order("staff_num"));
+        const [us, rq] = await Promise.all([
+          q(sb.from("profiles").select("*").order("staff_num")),
+          q(
+            sb
+              .from("pin_requests")
+              .select("*")
+              .eq("handled", false)
+              .order("at", { ascending: false }),
+          ),
+        ]);
+        const seen = new Set();
         $("#v-team").innerHTML =
-          `<div class="pn"><h3>➕ Create account</h3><input id="tn" placeholder="Staff number"><input id="tm" placeholder="Full name" style="margin-top:8px"><input id="tp" inputmode="numeric" placeholder="PIN (6+ digits)" style="margin-top:8px"><select id="tr" style="margin-top:8px"><option value="staff">Employee</option><option value="manager">Manager</option><option value="owner">Boss</option></select><button class="pb" id="tadd">Create account</button></div>
+          (rq.length
+            ? `<div class="pn"><h3>🔔 PIN reset requests</h3>${rq
+                .filter((r) => !seen.has(r.staff_num) && seen.add(r.staff_num))
+                .map(
+                  (r) =>
+                    `<div class="lg"><b>${esc(r.full_name)}</b> <span class="b">#${esc(r.staff_num)}</span> <span class="sub">${dtm(+new Date(r.at))}</span><div><button class="b w" data-up="${esc(r.staff_num)}" style="padding:8px 14px;margin-top:6px">Set a new PIN</button></div></div>`,
+                )
+                .join("")}</div>`
+            : "") +
+          `<div class="pn"><h3>➕ Create account</h3><input id="tn" placeholder="Staff number"><input id="tm" placeholder="Full name" style="margin-top:8px"><input id="tp" inputmode="numeric" placeholder="Starting PIN (6-12 digits)" style="margin-top:8px"><select id="tr" style="margin-top:8px"><option value="staff">Employee</option><option value="manager">Manager</option><option value="owner">Boss</option></select><div class="sub" style="margin-top:6px">They will be asked to choose their own PIN the first time they sign in.</div><button class="pb" id="tadd">Create account</button></div>
  <div class="pn"><h3>👥 Team (${us.length})</h3>${us.map((u) => `<div class="lg"><b>${esc(u.full_name)}</b> <span class="b">#${esc(u.staff_num)}</span> ${u.active ? "" : '<span class="b d">disabled</span>'}<div class="r" style="margin-top:6px"><select data-ur="${esc(u.staff_num)}" style="width:auto">${["staff", "manager", "owner"].map((r) => `<option value="${r}"${u.role === r ? " selected" : ""}>${ROLE[r]}</option>`).join("")}</select><button class="b ${u.active ? "d" : "g"}" data-ut="${esc(u.staff_num)}" data-on="${u.active ? 0 : 1}" style="padding:8px 14px">${u.active ? "Disable" : "Enable"}</button><button class="b w" data-up="${esc(u.staff_num)}" style="padding:8px 14px">Reset PIN</button></div></div>`).join("")}</div>`;
       }
       async function admin(body) {
@@ -1692,30 +1968,30 @@
           [
             "Date",
             "Item",
+            "Area",
             "Cooked/Defrosted",
             "Prep unit",
             "Use-by",
             "Live/Raw/Frozen",
             "Raw unit",
             "Dead/waste",
-            "Checked",
             "Note",
             "By",
             "Staff no",
           ],
         ];
-        ITEMS.forEach((i) => {
+        ordered().forEach((i) => {
           const r = R(i.id);
           rows.push([
             S.date,
             i.name,
+            areaOf(i),
             r.cooked ?? "",
             U(i, "pu"),
             r.use || "",
             r.raw ?? "",
             U(i, "ru"),
             r.waste ?? "",
-            r.done ? "Yes" : "",
             r.note || "",
             r.by || "",
             r.num || "",
@@ -1737,41 +2013,34 @@
         a.click();
       }
 
-      /* ---------- navigation / events ---------- */
-      function tab(t) {
-        S.tab = t;
-        document
-          .querySelectorAll("nav button")
-          .forEach((b) => b.classList.toggle("on", b.dataset.t === t));
-        ["check", "sum", "log", "hist", "par", "team"].forEach(
-          (x) => ($("#v-" + x).hidden = x !== t),
-        );
-        pushBar();
-        if (t !== "check")
-          ({
-            sum: sumView,
-            log: logView,
-            hist: histView,
-            par: parView,
-            team: teamView,
-          })[t]();
+      /* ---------- navigation ---------- */
+      const VIEWS = {
+        home: homeView,
+        check: checkView,
+        toilet: toiletView,
+        sum: sumView,
+        par: parView,
+        items: itemsView,
+        log: logView,
+        hist: histView,
+        team: teamView,
+        pin: pinView,
+      };
+      function go(p) {
+        if (S.force) p = "pin";
+        S.tab = p;
+        Object.keys(TITLES).forEach((x) => ($("#v-" + x).hidden = x !== p));
+        $("#pgbar").hidden = p === "home" || S.force;
+        $("#ptitle").textContent = TITLES[p];
+        $("#prog").hidden = p !== "check";
+        if (p !== "check") $("#ubar").hidden = true;
+        VIEWS[p]();
         scrollTo(0, 0);
       }
-      function applyRole() {
-        const r = S.user.role;
-        $("#nav").innerHTML = NAV[r]
-          .map(
-            (n, i) =>
-              `<button data-t="${n[0]}" class="${i ? "" : "on"}"><span>${n[1]}</span>${n[2]}</button>`,
-          )
-          .join("");
-        $("#date").max = today();
-        $("#date").min = r === "staff" ? today() : "";
-        tab("check");
-      }
-      $("#nav").onclick = (e) => {
-        const b = e.target.closest("button");
-        if (b) tab(b.dataset.t);
+      $("#back").onclick = () => go("home");
+      $("#v-home").onclick = (e) => {
+        const b = e.target.closest("[data-go]");
+        if (b) go(b.dataset.go);
       };
       $("#chips").onclick = (e) => {
         const c = e.target.dataset.c;
@@ -1785,13 +2054,6 @@
       $("#date").onchange = async (e) => {
         const v = e.target.value;
         if (!v) return;
-        if (
-          pending() &&
-          !confirm("You have unsaved changes. Leave without saving?")
-        ) {
-          e.target.value = S.date;
-          return;
-        }
         await openDay(v);
       };
       $("#list").onclick = (e) => {
@@ -1804,27 +2066,18 @@
           return;
         }
         if (a === "save") {
-          if (!isDirty(id) && R(id).done) {
-            toast("Already saved ✓");
-            return;
-          }
           change(id, "done", true);
           saveIds([id]).then((ok) => {
-            if (ok) {
-              pop(["✨", "🎉", "💪", "🔥", "👏"][(Math.random() * 5) | 0]);
-              if (ITEMS.every((i) => R(i.id).done)) {
-                pop("🏆");
-                toast("All items checked — amazing!");
-              }
+            if (ok && ITEMS.every((i) => R(i.id).done)) {
+              pop("🏆");
+              toast("Everything counted — amazing!");
             }
           });
         }
       };
       $("#list").oninput = (e) => {
         const c = e.target.closest(".card");
-        if (c && e.target.dataset.f) {
-          c.classList.add("dirty");
-        }
+        if (c && e.target.dataset.f) c.classList.add("dirty");
       };
       $("#list").onchange = (e) => {
         const t = e.target,
@@ -1839,9 +2092,210 @@
         const f = t.dataset.f;
         if (!f) return;
         change(id, f, t.value.trim());
-        autoTick(id, f);
         soft(c, id);
       };
+      $("#fin").onclick = async (e) => {
+        if (e.target.id !== "finb") return;
+        if (!isMgr()) {
+          if (await saveAll(true)) {
+            toast("All saved — well done ✓");
+            pop("🎉");
+            go("home");
+          }
+          return;
+        }
+        sendFinal();
+      };
+      $("#sv").onclick = () => saveAll();
+      $("#v-hist").onclick = (e) => {
+        const d = e.target.dataset.o;
+        if (d) {
+          openDay(d).then(() => go("check"));
+          toast("Opened " + d);
+        }
+      };
+      $("#v-sum").onclick = async (e) => {
+        const id = e.target.id;
+        if (id === "semail") {
+          const v = $("#to").value.trim(),
+            { error } = await sb
+              .from("settings")
+              .upsert({ key: "report_email", value: v });
+          if (error) toast(error.message);
+          else {
+            EMAIL = v;
+            toast("Email saved ✓");
+          }
+        }
+        if (id === "csv") csv();
+        if (id === "copyl")
+          navigator.clipboard
+            .writeText(listText())
+            .then(() => toast("List copied ✓"))
+            .catch(() => prompt("Copy this list:", listText()));
+      };
+      $("#v-par").onchange = async (e) => {
+        const t = e.target;
+        if (!t.dataset.p) return;
+        const id = t.dataset.id,
+          o = (PAR[id] = PAR[id] || {});
+        o[t.dataset.p] = num(t.value);
+        const { error } = await sb
+          .from("par_levels")
+          .upsert({ item_id: id, cooked: o.c ?? null, raw: o.r ?? null });
+        if (error) toast(error.message);
+        else toast("Target saved ✓");
+      };
+      $("#v-items").onchange = async (e) => {
+        const t = e.target,
+          k = t.dataset.k,
+          row = t.closest("[data-i]");
+        if (!k || !row) return;
+        const v = t.value.trim();
+        if (k === "name" && !v) {
+          toast("Name needed");
+          return;
+        }
+        const { error } = await sb
+          .from("items")
+          .update({ [k]: v || null })
+          .eq("id", row.dataset.i);
+        if (error) toast(error.message);
+        else {
+          toast("Saved ✓");
+          await loadItems();
+        }
+      };
+      $("#v-items").onclick = async (e) => {
+        const t = e.target,
+          row = t.closest("[data-i]");
+        if (t.id === "inadd") {
+          const name = $("#ina").value.trim(),
+            area = $("#inr").value.trim() || "Other";
+          if (!name) {
+            toast("Enter a name");
+            return;
+          }
+          const sort = Math.max(-1, ...ALL.map((i) => i.sort)) + 1,
+            { error } = await sb.from("items").insert({
+              id: "n" + Date.now().toString(36),
+              cat: area,
+              area,
+              name,
+              pu: $("#inp").value,
+              ru: $("#inq").value,
+              sort,
+            });
+          if (error) toast(error.message);
+          else {
+            toast("Item added ✓");
+            itemsView();
+          }
+          return;
+        }
+        if (!row) return;
+        const id = row.dataset.i;
+        if (t.dataset.tg) {
+          const it = ALL.find((i) => i.id === id);
+          await sb.from("items").update({ active: !it.active }).eq("id", id);
+          itemsView();
+        }
+        if (t.dataset.mv) {
+          const ix = ALL.findIndex((i) => i.id === id),
+            a = ALL[ix],
+            o = ALL[ix + +t.dataset.mv];
+          if (!o) return;
+          await Promise.all([
+            sb.from("items").update({ sort: o.sort }).eq("id", a.id),
+            sb.from("items").update({ sort: a.sort }).eq("id", o.id),
+          ]);
+          itemsView();
+        }
+      };
+      $("#v-pin").onclick = async (e) => {
+        if (e.target.id !== "pcs") return;
+        const a = $("#pc1").value.trim(),
+          b = $("#pc2").value.trim();
+        if (!/^\d{6,12}$/.test(a)) {
+          toast("PIN must be 6-12 digits");
+          return;
+        }
+        if (a !== b) {
+          toast("The two PINs do not match");
+          return;
+        }
+        if (!S.force) {
+          const { error } = await sb.auth.signInWithPassword({
+            email: S.user.num + "@theshell.staff",
+            password: $("#pc0").value.trim(),
+          });
+          if (error) {
+            toast("Current PIN is wrong");
+            return;
+          }
+        }
+        const { error } = await sb.auth.updateUser({
+          password: a,
+          data: { must_change: false },
+        });
+        if (error) {
+          toast(error.message);
+          return;
+        }
+        S.force = false;
+        toast("PIN changed ✓");
+        go("home");
+      };
+      $("#v-team").onclick = async (e) => {
+        const t = e.target,
+          d = t.dataset;
+        if (t.id === "tadd") {
+          if (
+            await admin({
+              action: "create",
+              num: $("#tn").value.trim(),
+              name: $("#tm").value.trim(),
+              pin: $("#tp").value.trim(),
+              role: $("#tr").value,
+            })
+          ) {
+            toast("Account created ✓");
+            teamView();
+          }
+          return;
+        }
+        if (d.ut) {
+          if (
+            await admin({
+              action: "set_active",
+              num: d.ut,
+              active: d.on === "1",
+            })
+          )
+            teamView();
+        }
+        if (d.up) {
+          const p = (
+            prompt(
+              "New PIN for #" +
+                d.up +
+                " (6-12 digits). They must change it at next sign-in:",
+            ) || ""
+          ).trim();
+          if (p && (await admin({ action: "reset_pin", num: d.up, pin: p }))) {
+            toast("PIN reset ✓ — tell them the new PIN");
+            teamView();
+          }
+        }
+      };
+      $("#v-team").onchange = async (e) => {
+        const n = e.target.dataset.ur;
+        if (!n) return;
+        if (await admin({ action: "set_role", num: n, role: e.target.value }))
+          toast("Role updated ✓");
+        else teamView();
+      };
+
       /* ---------- number picker (scroll wheel) ---------- */
       let PK = null;
       const WH = Array.from({ length: 301 }, (_, k) => String(k)),
@@ -1908,7 +2362,7 @@
           fromWheels,
         );
         setTimeout(() => {
-          PK.lock = false;
+          if (PK) PK.lock = false;
         }, 250);
       }
       const closePicker = () => {
@@ -1952,93 +2406,6 @@
       $("#shb").onclick = (e) => {
         if (e.target.id === "shb") closePicker();
       };
-      $("#sv").onclick = () => saveAll();
-      $("#push").onclick = sendFinal;
-      $("#v-hist").onclick = (e) => {
-        const d = e.target.dataset.o;
-        if (d) {
-          openDay(d);
-          tab("check");
-          toast("Opened " + d);
-        }
-      };
-      $("#v-sum").onclick = async (e) => {
-        if (e.target.id === "semail") {
-          const v = $("#to").value.trim(),
-            { error } = await sb
-              .from("settings")
-              .upsert({ key: "report_email", value: v });
-          if (error) toast(error.message);
-          else {
-            EMAIL = v;
-            toast("Email saved ✓");
-          }
-        }
-        if (e.target.id === "mail") sendFinal();
-        if (e.target.id === "csv") csv();
-      };
-      $("#v-par").onchange = async (e) => {
-        const t = e.target;
-        if (!t.dataset.p) return;
-        const id = t.dataset.id,
-          o = (PAR[id] = PAR[id] || {}),
-          v = num(t.value);
-        o[t.dataset.p] = v;
-        const { error } = await sb
-          .from("par_levels")
-          .upsert({ item_id: id, cooked: o.c ?? null, raw: o.r ?? null });
-        if (error) toast(error.message);
-        else toast("Target saved ✓");
-      };
-      $("#v-team").onclick = async (e) => {
-        const t = e.target,
-          d = t.dataset;
-        if (t.id === "tadd") {
-          if (
-            await admin({
-              action: "create",
-              num: $("#tn").value.trim(),
-              name: $("#tm").value.trim(),
-              pin: $("#tp").value.trim(),
-              role: $("#tr").value,
-            })
-          ) {
-            toast("Account created ✓");
-            teamView();
-          }
-          return;
-        }
-        if (d.ut) {
-          if (
-            await admin({
-              action: "set_active",
-              num: d.ut,
-              active: d.on === "1",
-            })
-          )
-            teamView();
-        }
-        if (d.up) {
-          const p = (
-            prompt("New PIN for #" + d.up + " (6-12 digits):") || ""
-          ).trim();
-          if (p && (await admin({ action: "reset_pin", num: d.up, pin: p })))
-            toast("PIN changed ✓");
-        }
-      };
-      $("#v-team").onchange = async (e) => {
-        const n = e.target.dataset.ur;
-        if (!n) return;
-        if (await admin({ action: "set_role", num: n, role: e.target.value }))
-          toast("Role updated ✓");
-        else teamView();
-      };
-      addEventListener("beforeunload", (e) => {
-        if (pending()) {
-          e.preventDefault();
-          e.returnValue = "";
-        }
-      });
 
       /* ---------- sign in / out ---------- */
       let PICK = null,
@@ -2123,6 +2490,17 @@
           dots();
         } else if (e.key === "Enter") doLogin();
       });
+      $("#forgot").onclick = async () => {
+        if (!PICK) return;
+        const { error } = await sb.rpc("request_pin_reset", {
+          p_num: PICK.num,
+        });
+        toast(
+          error
+            ? "Could not send the request"
+            : "Request sent — the boss will give you a new PIN",
+        );
+      };
       async function doLogin() {
         if (!PICK || !PIN) {
           toast("Enter your PIN");
@@ -2175,28 +2553,25 @@
           name: p.full_name,
           role: p.role,
         };
-        const [items, par, set] = await Promise.all([
-          q(sb.from("items").select("*").order("sort")),
+        S.force = !!(
+          session.user.user_metadata && session.user.user_metadata.must_change
+        );
+        const [par, set] = await Promise.all([
           q(sb.from("par_levels").select("*")),
           isMgr()
             ? q(sb.from("settings").select("*").eq("key", "report_email"))
             : [],
+          loadItems(),
         ]);
-        ITEMS = items.map((r) => ({
-          id: r.id,
-          cat: r.cat,
-          name: r.name,
-          pu: r.pu,
-          ru: r.ru,
-        }));
-        CATS = ["All", ...new Set(ITEMS.map((i) => i.cat))];
         par.forEach((r) => (PAR[r.item_id] = { c: r.cooked, r: r.raw }));
         EMAIL = set[0] ? set[0].value : "";
         S.date = today();
         $("#login").hidden = true;
         head();
-        applyRole();
+        $("#date").max = today();
+        $("#date").min = p.role === "staff" ? today() : "";
         await openDay(S.date);
+        go(S.force ? "pin" : "home");
         sb.from("login_log")
           .insert({
             user_id: p.id,
@@ -2227,7 +2602,12 @@
           .subscribe();
       }
       $("#out").onclick = async () => {
-        if (pending() && !confirm("You have unsaved changes. Sign out anyway?"))
+        if (
+          pending() &&
+          !confirm(
+            "You have unsaved changes (kept on this phone). Sign out anyway?",
+          )
+        )
           return;
         await sb.auth.signOut();
         location.reload();
@@ -2247,6 +2627,20 @@
         const t = localStorage.getItem("sq:theme");
         if (t) document.documentElement.dataset.theme = t;
       } catch (e) {}
+
+      /* ---------- signal / install ---------- */
+      const net = () => {
+        $("#net").hidden = navigator.onLine;
+      };
+      addEventListener("online", () => {
+        net();
+        if (S.user && pending())
+          saveAll(true).then((ok) => ok && toast("Back online — saved ✓"));
+      });
+      addEventListener("offline", net);
+      net();
+      if ("serviceWorker" in navigator)
+        navigator.serviceWorker.register("sw.js").catch(() => {});
       $("#date").value = S.date;
       sb.auth
         .getSession()

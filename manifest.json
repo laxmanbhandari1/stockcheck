@@ -1,0 +1,16 @@
+{
+  "name": "The Shell – Kitchen Stock",
+  "short_name": "Shell Stock",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e7",
+  "theme_color": "#0a2a3b",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
