@@ -1033,6 +1033,18 @@
       .fin h3 {
         font-size: 17px;
       }
+      * {
+        touch-action: manipulation;
+      }
+      input,
+      select,
+      textarea {
+        font-size: 16px;
+      }
+      select.un,
+      .ex input {
+        font-size: 16px;
+      }
     </style>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" />
@@ -1142,7 +1154,7 @@
           >
             <option value="all">All</option>
             <option value="todo">To do</option>
-            <option value="done">Counted</option>
+            <option value="done">Updated today</option>
             <option value="alert">⚠ Alerts</option>
           </select>
         </div>
@@ -1159,19 +1171,13 @@
       <section id="v-team" hidden></section>
       <section id="v-pin" hidden></section>
     </main>
-    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
       /* ===== THE SHELL – Kitchen Stock · v2 (Supabase) ===== */
-      const {
-        SUPABASE_URL,
-        SUPABASE_KEY,
-        REMIND_AT = "21:30",
-      } = window.APP_CONFIG || {
-        SUPABASE_URL: "https://ukzhutdvnfjkxbthsxag.supabase.co",
-        SUPABASE_KEY:
+      const SUPABASE_URL = "https://ukzhutdvnfjkxbthsxag.supabase.co",
+        SUPABASE_KEY =
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
-      };
+        REMIND_AT = "21:30"; /* closing-time reminder on the Home page */
       const $ = (s) => document.querySelector(s);
       if (SUPABASE_URL.includes("YOUR-PROJECT")) {
         document.body.innerHTML =
@@ -1262,7 +1268,12 @@
         PAR = {},
         EMAIL = "";
       const lon = { timeZone: "Europe/London" };
-      const today = () => new Date().toLocaleDateString("en-CA", lon);
+      const DAY_STARTS = 5; /* the kitchen day ends at 5am, so a late count after midnight still counts as the same day */
+      const today = () =>
+        new Date(Date.now() - DAY_STARTS * 36e5).toLocaleDateString(
+          "en-CA",
+          lon,
+        );
       let S = {
         user: null,
         date: today(),
@@ -1324,19 +1335,24 @@
       }
 
       /* ---------- database <-> screen ---------- */
-      const fromRow = (r) => ({
-        cooked: r.cooked ?? "",
-        raw: r.raw ?? "",
-        use: r.use_by || "",
-        note: r.note || "",
-        waste: r.waste ?? "",
-        done: !!r.done,
-        pu: r.pu || "",
-        ru: r.ru || "",
-        by: r.updated_by_name,
-        num: r.staff_num,
-        at: +new Date(r.updated_at),
-      });
+      const fromRow = (r, d) => {
+        const c = !!d && r.day !== d;
+        return {
+          cooked: r.cooked ?? "",
+          raw: r.raw ?? "",
+          use: r.use_by || "",
+          note: c ? "" : r.note || "",
+          waste: c ? "" : (r.waste ?? ""),
+          done: c ? false : !!r.done,
+          pu: r.pu || "",
+          ru: r.ru || "",
+          by: r.updated_by_name,
+          num: r.staff_num,
+          at: +new Date(r.updated_at),
+          carried: c,
+          from: c ? r.day : null,
+        };
+      };
       const toRow = (id, r) => ({
         day: S.date,
         item_id: id,
@@ -1388,35 +1404,22 @@
           : [];
       async function loadDay(d) {
         const [rows, log, pushes] = await Promise.all([
-          q(sb.from("stock_entries").select("*").eq("day", d)),
+          q(sb.rpc("stock_as_of", { p_day: d })),
           fetchLog(d),
           fetchReports(d),
         ]);
         const items = {};
-        rows.forEach((r) => (items[r.item_id] = fromRow(r)));
+        rows.forEach((r) => (items[r.item_id] = fromRow(r, d)));
         return { items, log, pushes };
       }
+      const dayBefore = (d) =>
+        new Date(+new Date(d + "T00:00:00Z") - 864e5)
+          .toISOString()
+          .slice(0, 10);
       async function loadPrev(d) {
-        const p = await q(
-          sb
-            .from("day_summary")
-            .select("day")
-            .lt("day", d)
-            .order("day", { ascending: false })
-            .limit(1),
-        );
-        if (!p[0]) return {};
         const o = {};
-        (
-          await q(
-            sb
-              .from("stock_entries")
-              .select("item_id,cooked,raw,waste")
-              .eq("day", p[0].day),
-          )
-        ).forEach(
-          (r) =>
-            (o[r.item_id] = { cooked: r.cooked, raw: r.raw, waste: r.waste }),
+        (await q(sb.rpc("stock_as_of", { p_day: dayBefore(d) }))).forEach(
+          (r) => (o[r.item_id] = { cooked: r.cooked, raw: r.raw }),
         );
         return o;
       }
@@ -1476,7 +1479,7 @@
           );
           return false;
         }
-        data.forEach((r) => (S.day.items[r.item_id] = fromRow(r)));
+        data.forEach((r) => (S.day.items[r.item_id] = fromRow(r, S.date)));
         persist();
         ids.forEach(rep);
         if (!quiet) toast(ids.length > 1 ? "All saved ✓" : "Saved ✓");
@@ -1587,11 +1590,16 @@
         if (touched(r) && !+r.cooked && !+r.raw)
           m += '<span class="b d">Out of stock</span>';
         m += needB(i);
+        if (r.carried && r.from) {
+          const dd = Math.round((new Date(S.date) - new Date(r.from)) / 864e5);
+          if (dd >= 3)
+            m += `<span class="b w">⏳ not updated for ${dd} days</span>`;
+        }
         return (
           m +
           (r.by
-            ? `<span>✏️ ${esc(r.by)} (#${esc(r.num)}) · ${tm(r.at)}</span>`
-            : "<span>Not counted yet</span>")
+            ? `<span>✏️ ${esc(r.by)} (#${esc(r.num)}) · ${dtm(r.at)}</span>`
+            : "<span>Never counted</span>")
         );
       }
       const isAlert = (i) => {
@@ -1619,7 +1627,7 @@
           w = r.waste,
           pv = (S.prev[i.id] || {}).cooked;
         return `<div class="card ${d ? "dirty" : ""}" data-id="${i.id}">
- <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${esc(areaOf(i))}${has(pv) ? " · yesterday " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
+ <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${esc(areaOf(i))}${has(pv) && String(pv) !== String(r.cooked) ? " · was " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
  <div class="q2">${qty(i, "cooked", "Cooked / Defrosted", "pu")}${qty(i, "raw", "Live / Raw / Frozen", "ru")}</div>
  <div class="ex"><input data-f="use" type="date" value="${esc(r.use)}" title="Use-by / Prep date"><input data-f="note" placeholder="📝 Note (optional)" value="${esc(r.note)}"><button class="wq" data-a="pick" data-f="waste">${has(w) ? "☠ Dead / waste: " + esc(w) : "☠ Dead / waste qty"}</button></div>
  <div class="mt">${badges(i)}</div></div>`;
@@ -1674,7 +1682,7 @@
           xp = n * 10;
         $("#ring").style.setProperty("--p", p);
         $("#pc").textContent = p + "%";
-        $("#cnt").textContent = `${n} / ${t} counted`;
+        $("#cnt").textContent = `${n} / ${t} updated today`;
         $("#lv").textContent =
           `⭐ Level ${Math.floor(xp / 100) + 1} · ${xp} XP` +
           (t && n == t ? " 🏆" : "");
@@ -1688,12 +1696,12 @@
           p = S.day.pushes[0];
         if (!isMgr()) {
           $("#fin").innerHTML =
-            '<div class="pn fin"><h3>All counted?</h3><div class="sub">Saves everything you changed, then takes you home.</div><button class="pb" id="finb">✓ Finish</button></div>';
+            '<div class="pn fin"><h3>All up to date?</h3><div class="sub">Saves everything you changed, then takes you home.</div><button class="pb" id="finb">✓ Finish</button></div>';
           return;
         }
         const sent = p && !n && !(S.day.log[0] && S.day.log[0].t > p.t);
         $("#fin").innerHTML =
-          `<div class="pn fin"><h3>${sent ? "✓ Final report sent" : "Finished counting?"}</h3><div class="sub">${sent ? "Sent at " + tm(p.t) + " to " + esc(p.to) : "Saves all changes, then emails the final report once."}</div><button class="pb" id="finb">${sent ? "Send again" : "📧 Save & send final report"}</button></div>`;
+          `<div class="pn fin"><h3>${sent ? "✓ Final report sent" : "All up to date?"}</h3><div class="sub">${sent ? "Sent at " + tm(p.t) + " to " + esc(p.to) : "Saves all changes, then emails the final report once."}</div><button class="pb" id="finb">${sent ? "Send again" : "📧 Save & send final report"}</button></div>`;
       }
       const renderAll = () => {
         stats();
@@ -1749,6 +1757,7 @@
           reqs = (
             await q(sb.from("pin_requests").select("id").eq("handled", false))
           ).length;
+        const tsl = await toiletToday();
         const late =
           S.date === today() &&
           new Date().toLocaleTimeString("en-GB", {
@@ -1762,9 +1771,9 @@
             "check",
             "📋",
             "Daily stock check",
-            `${done} / ${t} counted ${S.date === today() ? "today" : S.date}`,
+            `${done} / ${t} updated ${S.date === today() ? "today" : S.date}`,
           ],
-          ["toilet", "🚻", "Toilet check", "Coming soon"],
+          ["toilet", "🚻", "Toilet check", toiletSub(tsl)],
         ];
         if (!isMgr()) T.push(["sum", "🍳", "To prep", "What to cook now"]);
         else
@@ -1786,18 +1795,168 @@
           ]);
         T.push(["pin", "🔑", "My PIN", "Change your PIN"]);
         $("#v-home").innerHTML =
+          toiletBanner(tsl) +
           (late
-            ? `<div class="banner">⏰ Count not finished — ${t - done} item${t - done > 1 ? "s" : ""} left</div>`
+            ? `<div class="banner">⏰ Stock not updated yet today — ${t - done} item${t - done > 1 ? "s" : ""} untouched</div>`
             : "") +
           (n
             ? `<div class="banner">✏️ ${n} unsaved change${n > 1 ? "s" : ""} — open the stock check to save</div>`
             : "") +
-          `<div class="tiles">${T.map((x) => `<button class="tile ${x[0] === "toilet" ? "soon" : ""}" data-go="${x[0]}"><span class="ti">${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div>`;
+          `<div class="tiles">${T.map((x) => `<button class="tile" data-go="${x[0]}"><span class="ti">${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div>`;
       }
       const checkView = () => renderAll();
-      const toiletView = () => {
+      /* ---------- toilet check (open 12:00-22:00, one check per hour) ---------- */
+      const TO_OPEN = 12,
+        TO_CLOSE = 22;
+      const hourOf = (d) =>
+        +new Intl.DateTimeFormat("en-GB", {
+          ...lon,
+          hour: "numeric",
+          hourCycle: "h23",
+        }).format(d);
+      const lday = () => new Date().toLocaleDateString("en-CA", lon);
+      const hh = (h) => String(h).padStart(2, "0") + ":00";
+      let TOI = [];
+      async function toiletToday() {
+        TOI = await q(
+          sb.from("toilet_checks").select("*").eq("day", lday()).order("at"),
+        );
+        return toiletSlots(TOI);
+      }
+      function toiletSlots(ev) {
+        const H = hourOf(new Date()),
+          out = [];
+        for (let h = TO_OPEN; h < TO_CLOSE; h++) {
+          const e = ev.filter((x) => x.slot_hour === h),
+            ck = e.find((x) => x.status === "checked"),
+            ne = e.find((x) => x.status === "not_needed"),
+            bz = e.filter((x) => x.status === "busy");
+          const st = ck
+            ? hourOf(new Date(ck.at)) > h
+              ? "late"
+              : "ok"
+            : ne
+              ? "skip"
+              : h > H
+                ? "future"
+                : h < H
+                  ? "missed"
+                  : bz.length
+                    ? "busy"
+                    : "due";
+          out.push({ h, st, ck, ne, bz });
+        }
+        return out;
+      }
+      const toiletOpenNow = () => {
+        const H = hourOf(new Date());
+        return H >= TO_OPEN && H < TO_CLOSE;
+      };
+      function toiletSub(sl) {
+        const H = hourOf(new Date());
+        if (H < TO_OPEN) return "Opens at " + hh(TO_OPEN);
+        const due = sl.filter((s) => s.h <= H);
+        return `${due.filter((s) => s.st === "ok" || s.st === "late" || s.st === "skip").length} / ${due.length} hours done`;
+      }
+      function toiletBanner(sl) {
+        if (!toiletOpenNow()) return "";
+        const H = hourOf(new Date()),
+          cur = sl.find((s) => s.h === H);
+        let b = "";
+        if (cur && (cur.st === "due" || cur.st === "busy"))
+          b += `<div class="banner" data-go="toilet" style="cursor:pointer">🚻 Toilet check ${cur.st === "busy" ? "still owed (busy)" : "due now"} — ${hh(H)} · tap here</div>`;
+        if (
+          isMgr() &&
+          sl.some((s, i) => s.bz.length && sl[i + 1] && sl[i + 1].bz.length)
+        )
+          b +=
+            '<div class="banner">⚠ Toilets were busy two hours in a row — please make sure they get checked</div>';
+        return b;
+      }
+      async function toiletView() {
+        const sl = await toiletToday(),
+          H = hourOf(new Date()),
+          open = toiletOpenNow(),
+          cur = sl.find((s) => s.h === H);
+        const lab = {
+          ok: ["✓ Checked", "g"],
+          late: ["✓ Checked late", "w"],
+          busy: ["🕒 Busy", "w"],
+          due: ["Due now", "w"],
+          missed: ["✕ Missed", "d"],
+          future: ["", ""],
+          skip: ["💤 Not needed", ""],
+        };
+        const done = cur && (cur.st === "ok" || cur.st === "late");
+        const top = !open
+          ? `<div class="pn"><h3>🚻 Toilet check</h3><div class="sub">Closed. Toilets are checked every hour from ${hh(TO_OPEN)} to ${hh(TO_CLOSE)}.</div></div>`
+          : `<div class="pn" style="border:1.5px solid var(--gold)"><h3>🚻 ${hh(H)} · ${done ? "Checked ✓" : cur.st === "busy" ? "Busy — check as soon as you can" : cur.st === "skip" ? "Marked not needed" : "Due now"}</h3>` +
+            (done
+              ? `<div class="sub">${esc(cur.ck.who)} · ${tm(cur.ck.at)}</div>`
+              : cur.st === "skip"
+                ? `<div class="sub">${esc(cur.ne.who)}${cur.ne.note ? " · " + esc(cur.ne.note) : ""}</div>`
+                : `<button class="pb" data-th="checked" data-h="${H}">✓ I checked the toilets</button><div class="r" style="margin-top:8px"><button class="pb s" style="margin:0;flex:1" data-th="busy" data-h="${H}">🕒 Busy</button>${isMgr() ? `<button class="pb s" style="margin:0;flex:1" data-th="not_needed" data-h="${H}">💤 Not needed</button>` : ""}</div>`) +
+            `<button class="bk" data-th="problem" data-h="${H}" style="margin-top:10px">⚠ Report a problem</button></div>`;
+        const rows = sl
+          .map((s) => {
+            const [t, c] = lab[s.st],
+              who = s.ck
+                ? `${esc(s.ck.who)} · ${tm(s.ck.at)}`
+                : s.bz.length
+                  ? `busy: ${esc(s.bz[0].who)}${s.bz[0].note ? " – " + esc(s.bz[0].note) : ""}`
+                  : s.ne
+                    ? esc(s.ne.who)
+                    : "";
+            return `<div class="lg r" style="${s.st === "future" ? "opacity:.45" : ""}"><b style="width:52px">${hh(s.h)}</b><span class="b ${c}">${t || "Later"}</span><span class="sub sp">${who}</span>${s.st === "missed" || (s.st === "busy" && s.h !== H) ? `<button class="b" data-th="checked" data-h="${s.h}" style="padding:8px 12px">✓ Done now</button>` : ""}</div>`;
+          })
+          .join("");
+        const pr = TOI.filter((x) => x.status === "problem");
+        const alert2 =
+          isMgr() &&
+          sl.some((s, i) => s.bz.length && sl[i + 1] && sl[i + 1].bz.length)
+            ? '<div class="banner">⚠ Busy two hours in a row — make sure the toilets get checked</div>'
+            : "";
         $("#v-toilet").innerHTML =
-          '<div class="pn"><h3>🚻 Toilet check</h3><div class="sub">Coming soon. Nothing here yet.</div></div>';
+          alert2 +
+          top +
+          `<div class="pn"><h3>Today</h3>${rows}</div>` +
+          (pr.length
+            ? `<div class="pn"><h3>⚠ Problems reported today</h3>${pr.map((x) => `<div class="lg"><b>${esc(x.who)}</b> <span class="sub">${tm(x.at)} · ${hh(x.slot_hour)}</span><br>${esc(x.note)}</div>`).join("")}</div>`
+            : "");
+      }
+      $("#v-toilet").onclick = async (e) => {
+        const b = e.target.closest("[data-th]");
+        if (!b) return;
+        const st = b.dataset.th,
+          h = +b.dataset.h;
+        let note = null;
+        if (st === "busy") {
+          note = prompt("Why busy? (optional)");
+          if (note === null) return;
+        } else if (st === "problem") {
+          note = prompt("Describe the problem (e.g. no soap, needs cleaning):");
+          if (!note || !note.trim()) return;
+        } else if (st === "not_needed") {
+          note = prompt("Reason (e.g. no customers)?");
+          if (note === null) return;
+        }
+        b.disabled = true;
+        const { error } = await sb
+          .from("toilet_checks")
+          .insert({
+            slot_hour: h,
+            status: st,
+            note: (note && note.trim()) || null,
+            user_id: S.user.id,
+          });
+        if (error) {
+          toast(error.message);
+          b.disabled = false;
+          return;
+        }
+        if (st === "checked") pop("✨");
+        toast(st === "problem" ? "Problem reported ✓" : "Saved ✓");
+        toiletView();
       };
       function sumView() {
         if (!isMgr()) {
@@ -1831,7 +1990,7 @@
                 .join("")
             : '<div class="sub">None 👍</div>';
         $("#v-sum").innerHTML =
-          `<div class="g3"><div class="kp"><b>${done}</b><small>Counted</small></div><div class="kp"><b style="color:var(--rd)">${out.length}</b><small>Out of stock</small></div><div class="kp"><b style="color:var(--wa)">${due.length}</b><small>Use-by due</small></div></div>${prepPanel()}<button class="pb s" id="copyl" style="margin:0 0 10px">📋 Copy cook / order list</button>
+          `<div class="g3"><div class="kp"><b>${done}</b><small>Updated today</small></div><div class="kp"><b style="color:var(--rd)">${out.length}</b><small>Out of stock</small></div><div class="kp"><b style="color:var(--wa)">${due.length}</b><small>Use-by due</small></div></div>${prepPanel()}<button class="pb s" id="copyl" style="margin:0 0 10px">📋 Copy cook / order list</button>
  <div class="pn"><h3>Progress by area</h3>${cats}</div><div class="pn"><h3>🚨 Out of stock</h3>${list(out)}</div><div class="pn"><h3>⏳ Use-by reached</h3>${list(due)}</div>
  <div class="pn"><h3>🏅 Top counters</h3>${top.map((t, i) => `<div class="lg">${["🥇", "🥈", "🥉"][i] || "•"} <b>${esc(t[0])}</b> — ${t[1]} items</div>`).join("") || '<div class="sub">Nothing counted yet</div>'}</div>
  <div class="pn"><h3>📧 Report email</h3><div class="sub" style="margin-bottom:6px">The final report is sent from the end of the Daily stock check, only when you press the button. Separate several addresses with commas.</div><input id="to" placeholder="Manager's email" value="${esc(EMAIL)}"><button class="pb" id="semail">Save email</button><button class="pb s" id="csv">⬇ Download CSV</button></div>`;
@@ -1892,7 +2051,7 @@
           d
             .map(
               (x) =>
-                `<div class="pn r"><div class="sp"><b>${new Date(x.day + "T00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</b><div class="sub">${x.checked}/${ITEMS.length} counted · ${esc(x.people) || "-"}</div><div class="bar"><i style="width:${Math.min(100, (x.checked / ITEMS.length) * 100)}%"></i></div></div><button class="b" style="padding:9px 16px;font-size:14px" data-o="${x.day}">Open</button></div>`,
+                `<div class="pn r"><div class="sp"><b>${new Date(x.day + "T00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</b><div class="sub">${x.checked}/${ITEMS.length} updated · ${esc(x.people) || "-"}</div><div class="bar"><i style="width:${Math.min(100, (x.checked / ITEMS.length) * 100)}%"></i></div></div><button class="b" style="padding:9px 16px;font-size:14px" data-o="${x.day}">Open</button></div>`,
             )
             .join("");
       }
@@ -2177,15 +2336,17 @@
             return;
           }
           const sort = Math.max(-1, ...ALL.map((i) => i.sort)) + 1,
-            { error } = await sb.from("items").insert({
-              id: "n" + Date.now().toString(36),
-              cat: area,
-              area,
-              name,
-              pu: $("#inp").value,
-              ru: $("#inq").value,
-              sort,
-            });
+            { error } = await sb
+              .from("items")
+              .insert({
+                id: "n" + Date.now().toString(36),
+                cat: area,
+                area,
+                name,
+                pu: $("#inp").value,
+                ru: $("#inq").value,
+                sort,
+              });
           if (error) toast(error.message);
           else {
             toast("Item added ✓");
@@ -2334,7 +2495,7 @@
       }
       function openPicker(id, f) {
         const i = ITEMS.find((x) => x.id === id),
-          pv = (S.prev[id] || {})[f];
+          pv = f === "waste" ? undefined : (S.prev[id] || {})[f];
         let v = parseFloat(R(id)[f]);
         if (isNaN(v)) v = parseFloat(pv);
         if (isNaN(v)) v = 0;
@@ -2350,7 +2511,7 @@
           " (" +
           (f === "raw" ? U(i, "ru") : U(i, "pu")) +
           ")" +
-          (has(pv) ? " · yesterday " + pv : "");
+          (has(pv) ? " · was " + pv : "");
         $("#shb").hidden = false;
         $("#shi").value = String(v);
         $("#shv").textContent = v;
@@ -2595,7 +2756,7 @@
                   r.item_id
               )
                 return;
-              S.day.items[r.item_id] = fromRow(r);
+              S.day.items[r.item_id] = fromRow(r, S.date);
               S.tab === "check" ? rep(r.item_id) : stats();
             },
           )

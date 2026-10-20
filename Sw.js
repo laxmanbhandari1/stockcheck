@@ -7,13 +7,7 @@ self.addEventListener("install", (e) => {
       .open(C)
       .then((c) =>
         c
-          .addAll([
-            "./",
-            "index.html",
-            "config.js",
-            "manifest.json",
-            "icon.svg",
-          ])
+          .addAll(["./", "index.html", "manifest.json", "icon.svg"])
           .catch(() => {}),
       ),
   );
