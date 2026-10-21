@@ -1253,6 +1253,7 @@
       <section id="v-team" hidden></section>
       <section id="v-pin" hidden></section>
       <section id="v-settings" hidden></section>
+      <section id="v-import" hidden></section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
@@ -1260,7 +1261,7 @@
       const SUPABASE_URL = "https://ukzhutdvnfjkxbthsxag.supabase.co",
         SUPABASE_KEY =
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
-        APP_VERSION = "2026.10.22-a";
+        APP_VERSION = "2026.10.23-a";
       let REMIND_AT = "21:30",
         CFG = {}; /* closing-time reminder on the Home page */
       const $ = (s) => document.querySelector(s);
@@ -1347,6 +1348,7 @@
         team: "Team",
         pin: "My PIN",
         settings: "Settings",
+        import: "Import from Excel",
       };
       let ITEMS = [],
         ALL = [],
@@ -1908,6 +1910,7 @@
             ["sum", "📊", "Summary", "Everything at a glance"],
             ["par", "🎯", "Targets", "Minimum stock"],
             ["items", "🧾", "Items", "Add, rename, reorder"],
+            ["import", "📥", "Import from Excel", "Paste your sheet"],
             ["log", "🕵️", "Activity", "Who changed what"],
             ["hist", "📅", "History", "Past days & waste"],
           );
@@ -2806,6 +2809,212 @@
         add("Report email saved", !!EMAIL, "Save it in the box above");
         $("#hcr").innerHTML = rows.join("");
       }
+      /* ---------- import from Excel (paste or CSV) ---------- */
+      let IMP = [];
+      const MON = {
+        jan: 0,
+        feb: 1,
+        mar: 2,
+        apr: 3,
+        may: 4,
+        jun: 5,
+        jul: 6,
+        aug: 7,
+        sep: 8,
+        oct: 9,
+        nov: 10,
+        dec: 11,
+      };
+      const p2 = (n) => String(n).padStart(2, "0");
+      const normN = (t) =>
+        String(t || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9 ]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      function parseDate(v, ref) {
+        v = String(v || "").trim();
+        if (!v) return "";
+        const Y = +ref.slice(0, 4);
+        let m;
+        if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))
+          return `${m[1]}-${p2(m[2])}-${p2(m[3])}`;
+        if (
+          (m = v.match(
+            /^(\d{1,2})[\s\-\/.]*([a-zA-Z]{3,})\.?(?:[\s\-\/.]*(\d{2,4}))?$/,
+          )) &&
+          MON[m[2].slice(0, 3).toLowerCase()] !== undefined
+        )
+          return `${m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : Y}-${p2(MON[m[2].slice(0, 3).toLowerCase()] + 1)}-${p2(m[1])}`;
+        if ((m = v.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?$/)))
+          return `${m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : Y}-${p2(m[2])}-${p2(m[1])}`;
+        return "";
+      }
+      const nv = (v) => {
+        const t = String(v ?? "").trim();
+        return /^\d+([.,]\d+)?$/.test(t)
+          ? parseFloat(t.replace(",", "."))
+          : null;
+      };
+      function matchItem(name) {
+        const n = normN(name);
+        if (!n) return null;
+        return (
+          ALL.find((i) => normN(i.name) === n) ||
+          ALL.find((i) => {
+            const a = normN(i.name);
+            return (
+              n.length >= 4 &&
+              (a.startsWith(n) ||
+                n.startsWith(a) ||
+                a.includes(n) ||
+                n.includes(a))
+            );
+          }) ||
+          null
+        );
+      }
+      function parsePaste(txt, ref) {
+        const lines = txt
+            .replace(/\r/g, "")
+            .split("\n")
+            .filter((l) => l.trim()),
+          sep = lines.some((l) => l.includes("\t")) ? "\t" : ",",
+          rows = [];
+        lines.forEach((l) => {
+          const c = l.split(sep).map((x) => x.trim().replace(/^"|"$/g, ""));
+          while (c.length && c[0] === "") c.shift();
+          if (!c.length) return;
+          const nm = c[0];
+          if (!nm || /^(item|date)\b/i.test(nm)) return;
+          const r = {
+            name: nm,
+            cooked: nv(c[1]),
+            pu: String(c[2] || "").toLowerCase(),
+            use: parseDate(c[3], ref),
+            raw: nv(c[4]),
+            ru: String(c[5] || "").toLowerCase(),
+            txt:
+              (c[1] && nv(c[1]) === null ? c[1] : "") ||
+              (c[4] && nv(c[4]) === null ? c[4] : ""),
+            item: matchItem(nm),
+          };
+          r.sel = r.item ? r.item.id : "__skip";
+          r.has = r.cooked !== null || r.raw !== null || !!r.use || !!r.txt;
+          r.inc = r.sel !== "__skip" && r.has;
+          rows.push(r);
+        });
+        return rows;
+      }
+      function importView() {
+        IMP = [];
+        $("#v-import").innerHTML =
+          `<div class="pn"><h3>📥 Paste from Excel</h3><div class="sub" style="margin-bottom:8px">1. In Excel select the table (item name to raw unit, columns B to G) and copy it.<br>2. Tap the box below and paste.<br>3. Tap <b>Read it</b>, check the list, then import.</div>
+ <div class="lb">Which day is this sheet for?</div><input type="date" id="impd" value="${S.date}" max="${today()}">
+ <textarea id="impt" rows="7" placeholder="Paste the Excel rows here…" style="margin-top:10px"></textarea>
+ <div class="r" style="margin-top:8px"><button class="pb s" id="impr1" style="margin:0;flex:1">Read it</button><label class="pb s" style="margin:0;flex:1;text-align:center;cursor:pointer;display:block">Upload CSV<input type="file" id="impf" accept=".csv,.tsv,.txt" hidden></label></div></div><div id="impr"></div>`;
+      }
+      function renderImp() {
+        const n = IMP.filter((r) => r.inc && r.sel !== "__skip").length;
+        $("#impr").innerHTML = IMP.length
+          ? `<div class="pn"><h3>Check it · ${n} of ${IMP.length} will be imported</h3>${IMP.map(
+              (
+                r,
+                i,
+              ) => `<div class="lg"><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" data-ii="${i}" ${r.inc ? "checked" : ""} style="width:22px;height:22px;flex:none"><b>${esc(r.name)}</b>${r.item ? "" : ' <span class="b w">no match</span>'}${r.has ? "" : ' <span class="b">no values</span>'}</label>
+  <div class="sub">cooked ${r.cooked ?? "–"} ${esc(r.pu)} · raw ${r.raw ?? "–"} ${esc(r.ru)}${r.use ? " · use-by " + r.use : ""}${r.txt ? " · note: " + esc(r.txt) : ""}</div>
+  <select data-im="${i}" style="margin-top:6px"><option value="__skip"${r.sel === "__skip" ? " selected" : ""}>⏭ Skip this row</option><option value="__new"${r.sel === "__new" ? " selected" : ""}>➕ Add as a new item</option>${ALL.map((it) => `<option value="${it.id}"${r.sel === it.id ? " selected" : ""}>${esc(it.name)}</option>`).join("")}</select></div>`,
+            ).join("")}
+  <button class="pb" id="impgo">Import ${n} item${n !== 1 ? "s" : ""}</button></div>`
+          : '<div class="pn"><div class="sub">Nothing readable found. Copy the rows from Excel again (item name first, then cooked, unit, use-by, raw, unit).</div></div>';
+      }
+      function readImp(txt) {
+        IMP = parsePaste(txt, $("#impd").value || S.date);
+        renderImp();
+      }
+      async function doImport() {
+        const date = $("#impd").value || S.date,
+          rows = IMP.filter((r) => r.inc && r.sel !== "__skip");
+        if (!rows.length) {
+          toast("Nothing selected");
+          return;
+        }
+        if (!confirm(`Import ${rows.length} items into ${date}?`)) return;
+        const b = $("#impgo");
+        b.disabled = true;
+        b.textContent = "Importing…";
+        let ok = 0,
+          fail = 0,
+          sortN = Math.max(-1, ...ALL.map((i) => i.sort)) + 1;
+        for (const r of rows) {
+          let id = r.sel;
+          if (id === "__new") {
+            id = "n" + Date.now().toString(36) + ok + fail;
+            const { error } = await sb
+              .from("items")
+              .insert({
+                id,
+                cat: "Other",
+                area: "Other",
+                name: r.name,
+                pu: r.pu || "pcs",
+                ru: r.ru || "pcs",
+                sort: sortN++,
+              });
+            if (error) {
+              fail++;
+              continue;
+            }
+          }
+          const it = ALL.find((x) => x.id === id) || { pu: r.pu, ru: r.ru },
+            p = { done: true };
+          if (r.cooked !== null) p.cooked = r.cooked;
+          if (r.raw !== null) p.raw = r.raw;
+          if (r.use) p.use_by = r.use;
+          if (r.pu && r.pu !== it.pu) p.pu = r.pu;
+          if (r.ru && r.ru !== it.ru) p.ru = r.ru;
+          if (r.txt) p.note = r.txt;
+          const { error } = await sb.rpc("save_stock_item", {
+            p_day: date,
+            p_item: id,
+            p,
+          });
+          error ? fail++ : ok++;
+        }
+        await loadItems();
+        await openDay(date);
+        toast(
+          `Imported ${ok} item${ok !== 1 ? "s" : ""}${fail ? ` · ${fail} failed` : ""} ✓`,
+        );
+        if (ok) go("check");
+        else b.disabled = false;
+      }
+      $("#v-import").onclick = (e) => {
+        if (e.target.id === "impr1") readImp($("#impt").value);
+        if (e.target.id === "impgo") doImport();
+      };
+      $("#v-import").onchange = (e) => {
+        const t = e.target;
+        if (t.id === "impf" && t.files[0]) {
+          const fr = new FileReader();
+          fr.onload = () => {
+            $("#impt").value = fr.result;
+            readImp(fr.result);
+          };
+          fr.readAsText(t.files[0]);
+          return;
+        }
+        if (t.dataset.ii !== undefined) {
+          IMP[+t.dataset.ii].inc = t.checked;
+          renderImp();
+        }
+        if (t.dataset.im !== undefined) {
+          const r = IMP[+t.dataset.im];
+          r.sel = t.value;
+          r.inc = t.value !== "__skip" && r.has;
+          renderImp();
+        }
+      };
       /* ---------- navigation ---------- */
       const VIEWS = {
         home: homeView,
@@ -2819,6 +3028,7 @@
         team: teamView,
         pin: pinView,
         settings: settingsView,
+        import: importView,
       };
       function go(p) {
         if (S.force) p = "pin";
