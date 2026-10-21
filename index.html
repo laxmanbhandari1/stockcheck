@@ -1166,7 +1166,7 @@
           </button>
         </div>
         <p style="margin-top: 12px; font-size: 12px; text-align: center">
-          Tap your name to sign in.
+          Tap your name to sign in. · <span class="ver"></span>
         </p>
       </div>
     </div>
@@ -1252,6 +1252,7 @@
       <section id="v-hist" hidden></section>
       <section id="v-team" hidden></section>
       <section id="v-pin" hidden></section>
+      <section id="v-settings" hidden></section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
@@ -1259,7 +1260,9 @@
       const SUPABASE_URL = "https://ukzhutdvnfjkxbthsxag.supabase.co",
         SUPABASE_KEY =
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
-        REMIND_AT = "21:30"; /* closing-time reminder on the Home page */
+        APP_VERSION = "2026.10.22-a";
+      let REMIND_AT = "21:30",
+        CFG = {}; /* closing-time reminder on the Home page */
       const $ = (s) => document.querySelector(s);
       if (SUPABASE_URL.includes("YOUR-PROJECT")) {
         document.body.innerHTML =
@@ -1343,6 +1346,7 @@
         hist: "History",
         team: "Team",
         pin: "My PIN",
+        settings: "Settings",
       };
       let ITEMS = [],
         ALL = [],
@@ -1350,7 +1354,7 @@
         PAR = {},
         EMAIL = "";
       const lon = { timeZone: "Europe/London" };
-      const DAY_STARTS = 5; /* the kitchen day ends at 5am, so a late count after midnight still counts as the same day */
+      let DAY_STARTS = 5; /* the kitchen day ends at 5am, so a late count after midnight still counts as the same day */
       const today = () =>
         new Date(Date.now() - DAY_STARTS * 36e5).toLocaleDateString(
           "en-CA",
@@ -1538,32 +1542,63 @@
         if (String(r[f] ?? "") === String(val ?? "")) return;
         r[f] = val;
         r.dirty = true;
+        (r.ch = r.ch || {})[f] = true;
         r.by = S.user.name;
         r.num = S.user.num;
         r.at = Date.now();
         persist();
       }
+      const FMAP = {
+        cooked: "cooked",
+        raw: "raw",
+        use: "use_by",
+        note: "note",
+        waste: "waste",
+        done: "done",
+        pu: "pu",
+        ru: "ru",
+      };
+      const fval = (f, r) =>
+        f === "cooked" || f === "raw" || f === "waste"
+          ? num(r[f])
+          : f === "done"
+            ? !!r.done
+            : r[f] || null;
       async function saveIds(ids, quiet) {
         ids = ids.filter((id) => S.day.items[id]);
         if (!ids.length) return true;
-        const { data, error } = await sb
-          .from("stock_entries")
-          .upsert(
-            ids.map((id) => toRow(id, S.day.items[id])),
-            { onConflict: "day,item_id" },
-          )
-          .select();
-        if (error) {
+        let ok = true;
+        await Promise.all(
+          ids.map(async (id) => {
+            const r = S.day.items[id],
+              fs = Object.keys(r.ch || {}).length
+                ? Object.keys(r.ch)
+                : Object.keys(FMAP),
+              p = {};
+            fs.forEach((f) => (p[FMAP[f]] = fval(f, r)));
+            const { data, error } = await sb.rpc("save_stock_item", {
+              p_day: S.date,
+              p_item: id,
+              p,
+            });
+            if (error) {
+              ok = false;
+              if (navigator.onLine) logErr("save: " + error.message);
+              return;
+            }
+            S.day.items[id] = fromRow(data, S.date);
+            rep(id);
+          }),
+        );
+        persist();
+        if (!ok) {
           toast(
             navigator.onLine
-              ? "Save failed: " + error.message
+              ? "Some changes could not be saved. Try again."
               : "No signal — kept on this phone, will save when you are back online",
           );
           return false;
         }
-        data.forEach((r) => (S.day.items[r.item_id] = fromRow(r, S.date)));
-        persist();
-        ids.forEach(rep);
         if (!quiet) toast(ids.length > 1 ? "All saved ✓" : "Saved ✓");
         fetchLog(S.date).then((l) => (S.day.log = l));
         return true;
@@ -1834,11 +1869,21 @@
         const n = pending(),
           t = ITEMS.length,
           done = ITEMS.filter((i) => R(i.id).done).length;
-        let reqs = 0;
-        if (S.user.role === "owner")
+        let reqs = 0,
+          errs = 0;
+        if (S.user.role === "owner") {
           reqs = (
             await q(sb.from("pin_requests").select("id").eq("handled", false))
           ).length;
+          errs = (
+            await q(
+              sb
+                .from("app_errors")
+                .select("id")
+                .gte("at", new Date(Date.now() - 864e5).toISOString()),
+            )
+          ).length;
+        }
         const tsl = await toiletToday();
         const late =
           S.date === today() &&
@@ -1875,6 +1920,15 @@
               ? `🔔 ${reqs} PIN request${reqs > 1 ? "s" : ""}`
               : "Accounts & PINs",
           ]);
+        if (S.user.role === "owner")
+          T.push([
+            "settings",
+            "⚙️",
+            "Settings",
+            errs
+              ? `🩺 ${errs} problem${errs > 1 ? "s" : ""} in 24h`
+              : "Hours, backup, health check",
+          ]);
         T.push(["pin", "🔑", "My PIN", "Change your PIN"]);
         $("#v-home").innerHTML =
           toiletBanner(tsl) +
@@ -1884,11 +1938,11 @@
           (n
             ? `<div class="banner">✏️ ${n} unsaved change${n > 1 ? "s" : ""} — open the stock check to save</div>`
             : "") +
-          `<div class="tiles">${T.map((x) => `<button class="tile" data-go="${x[0]}"><span class="ti">${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div>`;
+          `<div class="tiles">${T.map((x) => `<button class="tile" data-go="${x[0]}"><span class="ti">${x[1]}</span><b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div><div class="sub" style="text-align:center;margin-top:18px">Version ${APP_VERSION}</div>`;
       }
       const checkView = () => renderAll();
       /* ---------- toilet check (open 12:00-22:00, one check per hour) ---------- */
-      const TO_OPEN = 12,
+      let TO_OPEN = 12,
         TO_CLOSE = 22;
       const hourOf = (d) =>
         +new Intl.DateTimeFormat("en-GB", {
@@ -1906,6 +1960,7 @@
         return toiletSlots(TOI);
       }
       function toiletSlots(ev) {
+        ev = ev.filter((x) => !x.voided);
         const H = hourOf(new Date()),
           out = [];
         for (let h = TO_OPEN; h < TO_CLOSE; h++) {
@@ -1989,10 +2044,10 @@
                   : s.ne
                     ? esc(s.ne.who)
                     : "";
-            return `<div class="lg r" style="${s.st === "future" ? "opacity:.45" : ""}"><b style="width:52px">${hh(s.h)}</b><span class="b ${c}">${t || "Later"}</span><span class="sub sp">${who}</span>${s.st === "missed" || (s.st === "busy" && s.h !== H) ? `<button class="b" data-th="checked" data-h="${s.h}" style="padding:8px 12px">✓ Done now</button>` : ""}</div>`;
+            return `<div class="lg r" style="${s.st === "future" ? "opacity:.45" : ""}"><b style="width:52px">${hh(s.h)}</b><span class="b ${c}">${t || "Later"}</span><span class="sub sp">${who}</span>${s.st === "missed" || (s.st === "busy" && s.h !== H) ? `<button class="b" data-th="checked" data-h="${s.h}" style="padding:8px 12px">✓ Done now</button>` : ""}${isMgr() && (s.st === "ok" || s.st === "late" || s.st === "skip") ? `<button class="b" data-tv="${(s.ck || s.ne).id}" style="padding:8px 12px">↩ Void</button>` : ""}</div>`;
           })
           .join("");
-        const pr = TOI.filter((x) => x.status === "problem");
+        const pr = TOI.filter((x) => x.status === "problem" && !x.voided);
         const alert2 =
           isMgr() &&
           sl.some((s, i) => s.bz.length && sl[i + 1] && sl[i + 1].bz.length)
@@ -2003,10 +2058,26 @@
           top +
           `<div class="pn"><h3>Today</h3>${rows}</div>` +
           (pr.length
-            ? `<div class="pn"><h3>⚠ Problems reported today</h3>${pr.map((x) => `<div class="lg"><b>${esc(x.who)}</b> <span class="sub">${tm(x.at)} · ${hh(x.slot_hour)}</span><br>${esc(x.note)}</div>`).join("")}</div>`
+            ? `<div class="pn"><h3>⚠ Problems reported today</h3>${pr.map((x) => `<div class="lg"><b>${esc(x.who)}</b> <span class="sub">${tm(x.at)} · ${hh(x.slot_hour)}</span><br>${esc(x.note)}${isMgr() ? ` <button class="b g" data-tr="${x.id}" style="padding:6px 12px;margin-left:8px">✓ Resolved</button>` : ""}</div>`).join("")}</div>`
             : "");
       }
       $("#v-toilet").onclick = async (e) => {
+        const v = e.target.closest("[data-tv],[data-tr]");
+        if (v) {
+          const res = v.dataset.tr !== undefined,
+            reason = res ? "resolved" : prompt("Why void this? (optional)");
+          if (reason === null) return;
+          const { error } = await sb.rpc("void_toilet_check", {
+            p_id: +(v.dataset.tv || v.dataset.tr),
+            p_reason: reason,
+          });
+          if (error) toast(error.message);
+          else {
+            toast(res ? "Marked resolved ✓" : "Voided ✓");
+            toiletView();
+          }
+          return;
+        }
         const b = e.target.closest("[data-th]");
         if (!b) return;
         const st = b.dataset.th,
@@ -2171,7 +2242,7 @@
         const two = sl.some(
             (s, i) => s.bz.length && sl[i + 1] && sl[i + 1].bz.length,
           ),
-          probs = TOI.filter((x) => x.status === "problem");
+          probs = TOI.filter((x) => x.status === "problem" && !x.voided);
         if (missed.length)
           issues.push({
             sev: "r",
@@ -2312,10 +2383,10 @@
                   .gte("day", from)
                   .order("at"),
               )
-            ).map((x) => {
+            ).flatMap((x) => {
               const w = `<b>${esc(x.who)}</b>`,
                 h = hh(x.slot_hour);
-              return {
+              const a = {
                 t: +new Date(x.at),
                 text:
                   x.status === "checked"
@@ -2326,6 +2397,15 @@
                         ? `${w} marked the ${h} check not needed${x.note ? " — " + esc(x.note) : ""}`
                         : `${w} reported a toilet problem: ${esc(x.note)}`,
               };
+              return x.voided
+                ? [
+                    a,
+                    {
+                      t: +new Date(x.voided_at),
+                      text: `<b>${esc(x.voided_by)}</b> voided ${esc(x.who)}'s ${x.status === "checked" ? "toilet check" : x.status === "problem" ? "problem report (resolved)" : x.status} (${h})${x.void_reason && x.void_reason !== "resolved" ? " — " + esc(x.void_reason) : ""}`,
+                    },
+                  ]
+                : [a];
             }),
         },
         {
@@ -2541,6 +2621,191 @@
         a.click();
       }
 
+      /* ---------- settings, backup, setup check, error log ---------- */
+      async function loadCfg() {
+        const r = await q(sb.from("settings").select("*")),
+          c = {};
+        r.forEach((x) => (c[x.key] = x.value));
+        CFG = c;
+        if (c.timezone) lon.timeZone = c.timezone;
+        if (c.open_hour) TO_OPEN = +c.open_hour;
+        if (c.close_hour) TO_CLOSE = +c.close_hour;
+        if (c.day_starts !== undefined && c.day_starts !== "")
+          DAY_STARTS = +c.day_starts;
+        if (c.remind_at) REMIND_AT = c.remind_at;
+        EMAIL = c.report_email || "";
+      }
+      let ERRN = 0;
+      function logErr(m) {
+        if (!S.user || ERRN >= 5) return;
+        ERRN++;
+        sb.from("app_errors")
+          .insert({
+            user_id: S.user.id,
+            who: S.user.name,
+            page: S.tab,
+            message: String(m).slice(0, 300),
+            version: APP_VERSION,
+          })
+          .then(() => {});
+      }
+      addEventListener("error", (e) => logErr(e.message));
+      addEventListener("unhandledrejection", (e) =>
+        logErr((e.reason && e.reason.message) || e.reason),
+      );
+      const HRS = (v) =>
+        Array.from(
+          { length: 24 },
+          (_, h) =>
+            `<option value="${h}"${h === +v ? " selected" : ""}>${hh(h)}</option>`,
+        ).join("");
+      async function settingsView() {
+        const err = await q(
+          sb
+            .from("app_errors")
+            .select("*")
+            .order("at", { ascending: false })
+            .limit(15),
+        );
+        $("#v-settings").innerHTML =
+          `<div class="pn"><h3>⏰ Toilet check hours</h3><div class="r"><div class="sp"><div class="lb">Opens</div><select data-set="open_hour">${HRS(TO_OPEN)}</select></div><div class="sp"><div class="lb">Closes</div><select data-set="close_hour">${HRS(TO_CLOSE)}</select></div></div></div>
+ <div class="pn"><h3>🌙 Kitchen day starts at</h3><div class="sub" style="margin-bottom:6px">Counts done before this hour still belong to the previous day.</div><select data-set="day_starts">${HRS(DAY_STARTS)}</select></div>
+ <div class="pn"><h3>🔔 Reminder time</h3><div class="sub" style="margin-bottom:6px">After this time the Home page reminds people if stock has not been updated.</div><input type="time" data-set="remind_at" value="${esc(REMIND_AT)}"></div>
+ <div class="pn"><h3>🌍 Time zone</h3><input data-set="timezone" list="tzs" value="${esc(lon.timeZone)}"><datalist id="tzs"><option value="Europe/London"><option value="Europe/Dublin"><option value="Europe/Paris"><option value="America/New_York"><option value="Asia/Kathmandu"><option value="Asia/Dubai"><option value="Australia/Sydney"></datalist></div>
+ <div class="pn"><h3>📧 Report email</h3><input data-set="report_email" placeholder="Manager's email" value="${esc(EMAIL)}"></div>
+ <div class="pn"><h3>🔎 Setup check</h3><div class="sub" style="margin-bottom:6px">Tests that the tables, functions and email service are all connected.</div><button class="pb s" id="hc">Run setup check</button><div id="hcr"></div></div>
+ <div class="pn"><h3>💾 Backup</h3><div class="sub" style="margin-bottom:6px">Downloads all stock, toilet, account and activity data in one file. Do this regularly while on the free Supabase plan.</div><button class="pb s" id="bk">⬇ Download full backup</button></div>
+ <div class="pn"><h3>🩺 App problems</h3>${err.map((x) => `<div class="lg"><b>${esc(x.who || "?")}</b> <span class="sub">${dtm(+new Date(x.at))} · ${esc(x.page || "")} · v${esc(x.version || "")}</span><br>${esc(x.message)}</div>`).join("") || '<div class="sub">No problems reported 👍</div>'}</div>`;
+      }
+      $("#v-settings").onchange = async (e) => {
+        const k = e.target.dataset.set;
+        if (!k) return;
+        const v = e.target.value.trim();
+        if (k === "timezone") {
+          try {
+            new Intl.DateTimeFormat("en", { timeZone: v });
+          } catch (x) {
+            toast("Unknown time zone");
+            return;
+          }
+        }
+        const o = k === "open_hour" ? +v : TO_OPEN,
+          c = k === "close_hour" ? +v : TO_CLOSE;
+        if (o >= c) {
+          toast("Opening hour must be before closing hour");
+          settingsView();
+          return;
+        }
+        const { error } = await sb
+          .from("settings")
+          .upsert({ key: k, value: v });
+        if (error) {
+          toast(error.message);
+          return;
+        }
+        await loadCfg();
+        toast("Saved ✓");
+      };
+      $("#v-settings").onclick = (e) => {
+        if (e.target.id === "bk") backup();
+        if (e.target.id === "hc") healthCheck();
+      };
+      const ORD = {
+        items: "sort",
+        par_levels: "item_id",
+        stock_entries: "day",
+        toilet_checks: "id",
+        change_log: "id",
+        audit_log: "id",
+        reports: "id",
+        settings: "key",
+        profiles: "staff_num",
+      };
+      async function fetchAll(t) {
+        let all = [],
+          from = 0;
+        for (;;) {
+          let qy = sb.from(t).select("*").order(ORD[t]);
+          if (t === "stock_entries") qy = qy.order("item_id");
+          const { data, error } = await qy.range(from, from + 999);
+          if (error) throw new Error(t + ": " + error.message);
+          all = all.concat(data || []);
+          if (!data || data.length < 1000) break;
+          from += 1000;
+        }
+        return all;
+      }
+      async function backup() {
+        const b = $("#bk");
+        b.disabled = true;
+        b.textContent = "Preparing…";
+        try {
+          const out = {
+            exported_at: new Date().toISOString(),
+            version: APP_VERSION,
+            tables: {},
+          };
+          for (const t of Object.keys(ORD)) out.tables[t] = await fetchAll(t);
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(
+            new Blob([JSON.stringify(out, null, 1)], {
+              type: "application/json",
+            }),
+          );
+          a.download = "shell-stock-backup-" + today() + ".json";
+          a.click();
+          toast("Backup downloaded ✓");
+        } catch (e) {
+          toast("Backup failed: " + e.message);
+        }
+        b.disabled = false;
+        b.textContent = "⬇ Download full backup";
+      }
+      async function healthCheck() {
+        const rows = [],
+          add = (n, ok, m) =>
+            rows.push(
+              `<div class="lg">${ok ? "✅" : "❌"} <b>${n}</b>${ok ? "" : `<div class="sub">${esc(m)}</div>`}</div>`,
+            );
+        $("#hcr").innerHTML = '<div class="sub">Checking…</div>';
+        for (const t of [
+          "items",
+          "stock_entries",
+          "par_levels",
+          "toilet_checks",
+          "settings",
+          "app_errors",
+          "pin_requests",
+          "profiles",
+        ]) {
+          const { error } = await sb.from(t).select("*").limit(1);
+          add("Table: " + t, !error, error && error.message);
+        }
+        for (const [fn, args] of [
+          ["stock_as_of", { p_day: today() }],
+          ["login_roster", {}],
+          ["void_toilet_check", { p_id: -1, p_reason: "" }],
+          ["save_stock_item", { p_day: today(), p_item: "__check__", p: {} }],
+        ]) {
+          const { error } = await sb.rpc(fn, args),
+            missing =
+              error &&
+              /could not find|does not exist|schema cache/i.test(error.message);
+          add("Function: " + fn, !missing, error && error.message);
+        }
+        for (const fn of ["staff-admin", "send-report"]) {
+          const { data, error } = await sb.functions.invoke(fn, {
+            body: { action: "ping", day: "x" },
+          });
+          add(
+            "Edge function: " + fn,
+            !!data && !error,
+            error ? error.message : "no reply",
+          );
+        }
+        add("Report email saved", !!EMAIL, "Save it in the box above");
+        $("#hcr").innerHTML = rows.join("");
+      }
       /* ---------- navigation ---------- */
       const VIEWS = {
         home: homeView,
@@ -2553,6 +2818,7 @@
         hist: histView,
         team: teamView,
         pin: pinView,
+        settings: settingsView,
       };
       function go(p) {
         if (S.force) p = "pin";
@@ -2565,7 +2831,18 @@
         VIEWS[p]();
         scrollTo(0, 0);
       }
-      $("#back").onclick = () => go("home");
+      $("#back").onclick = async () => {
+        const n = pending();
+        if (
+          S.tab === "check" &&
+          n &&
+          confirm(
+            `You have ${n} unsaved change${n > 1 ? "s" : ""}. Save them now?\n\nOK = save, Cancel = leave and keep them on this phone`,
+          )
+        )
+          await saveAll(true);
+        go("home");
+      };
       $("#v-home").onclick = (e) => {
         const b = e.target.closest("[data-go]");
         if (b) go(b.dataset.go);
@@ -3096,15 +3373,12 @@
         S.force = !!(
           session.user.user_metadata && session.user.user_metadata.must_change
         );
-        const [par, set] = await Promise.all([
+        const [par] = await Promise.all([
           q(sb.from("par_levels").select("*")),
-          isMgr()
-            ? q(sb.from("settings").select("*").eq("key", "report_email"))
-            : [],
           loadItems(),
+          loadCfg(),
         ]);
         par.forEach((r) => (PAR[r.item_id] = { c: r.cooked, r: r.raw }));
-        EMAIL = set[0] ? set[0].value : "";
         S.date = today();
         $("#login").hidden = true;
         head();
@@ -3173,6 +3447,9 @@
       net();
       if ("serviceWorker" in navigator)
         navigator.serviceWorker.register("sw.js").catch(() => {});
+      document
+        .querySelectorAll(".ver")
+        .forEach((e) => (e.textContent = "v" + APP_VERSION));
       $("#date").value = S.date;
       sb.auth
         .getSession()
