@@ -1127,6 +1127,128 @@
         background: var(--rds);
         color: var(--rd);
       }
+      .qt {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 12px 8px;
+        border-radius: 16px;
+        background: var(--bg);
+        border: 1.5px solid var(--br);
+        width: 100%;
+      }
+      .qt .lb {
+        margin: 0;
+      }
+      .qt .qn {
+        font-size: 30px;
+        font-weight: 800;
+        font-family: Georgia, serif;
+        line-height: 1.15;
+        color: var(--tx);
+      }
+      .qt.e .qn {
+        color: var(--mu);
+        font-weight: 500;
+      }
+      .qt .qu {
+        font-size: 12px;
+        color: var(--mu);
+      }
+      .qt:active {
+        border-color: var(--pr);
+        background: var(--prs);
+      }
+      .foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .more {
+        color: var(--pr);
+        font-weight: 600;
+        font-size: 14px;
+        padding: 6px 2px;
+        flex: none;
+      }
+      .extra {
+        margin-top: 8px;
+        display: grid;
+        gap: 10px;
+        border-top: 1px solid var(--br);
+        padding-top: 10px;
+      }
+      .extra .un {
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        font-size: 16px;
+        text-align: left;
+      }
+      .extra .wq {
+        grid-column: auto;
+      }
+      .al {
+        margin-bottom: 10px;
+      }
+      .alh {
+        width: 100%;
+        text-align: left;
+        background: var(--rds);
+        color: var(--rd);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .alb {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 4px 14px 8px;
+        margin-top: 6px;
+        box-shadow: var(--sh);
+      }
+      .banner.red {
+        background: var(--rds);
+        border-color: var(--rd);
+        color: var(--rd);
+      }
+      .sumcard {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        background: var(--card);
+        border-radius: 18px;
+        padding: 16px 14px;
+        margin-bottom: 10px;
+        box-shadow: var(--sh);
+        border-left: 6px solid var(--ok);
+      }
+      .sumcard.a {
+        border-left-color: var(--wa);
+      }
+      .sumcard.r {
+        border-left-color: var(--rd);
+      }
+      .sumcard .chev {
+        font-size: 24px;
+        color: var(--mu);
+      }
+      .sumcard:active {
+        background: var(--prs);
+      }
+      .lg,
+      .sub,
+      .nm {
+        overflow-wrap: anywhere;
+      }
     </style>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" />
@@ -1229,6 +1351,7 @@
       </div>
       <section id="v-home"></section>
       <section id="v-check" hidden>
+        <div id="alerts"></div>
         <div class="tools">
           <input id="q" placeholder="🔍 Search item…" /><select
             id="sf"
@@ -1254,16 +1377,45 @@
       <section id="v-pin" hidden></section>
       <section id="v-settings" hidden></section>
       <section id="v-import" hidden></section>
+      <section id="v-notif" hidden></section>
+      <section id="v-sumStock" hidden></section>
+      <section id="v-sumToilet" hidden></section>
     </main>
+    <div class="sh-bg" id="rsb" hidden>
+      <div class="sheet">
+        <div
+          class="sh-t"
+          id="rst"
+          style="font-size: 15px; color: var(--tx); margin-bottom: 10px"
+        ></div>
+        <div
+          class="chips"
+          id="rsc"
+          style="flex-wrap: wrap; overflow: visible"
+        ></div>
+        <input id="rsi" placeholder="…or type your own reason" />
+        <button class="pb" id="rsd" style="margin-top: 12px">
+          ✓ I checked it now (late)
+        </button>
+        <button class="pb s" id="rsr">I did not check — save my reason</button>
+        <button class="pb s" id="rsn" hidden>💤 Mark as not needed</button>
+        <button class="bk" id="rsx" style="display: block; margin: 10px auto 0">
+          Cancel
+        </button>
+      </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <script>
       /* ===== THE SHELL – Kitchen Stock · v2 (Supabase) ===== */
       const SUPABASE_URL = "https://ukzhutdvnfjkxbthsxag.supabase.co",
         SUPABASE_KEY =
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVremh1dGR2bmZqa3hidGhzeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwMTk3MjUsImV4cCI6MjEwNzU5NTcyNX0.dKK1iacGwQRmAmnuOLbQYm3pWXmnOlNZPe3N84Cd0vA",
-        APP_VERSION = "2026.10.23-a";
+        APP_VERSION = "2026.10.26-a";
       let REMIND_AT = "21:30",
-        CFG = {}; /* closing-time reminder on the Home page */
+        CFG = {},
+        LOW_MAX = 2;
+      const VAPID_PUBLIC =
+        "BI4fTFem_gwMlbOrz7c2H5pxWWGG1EBLam09Ofzo0YJGz1oQS8hcbgFco7zmPQKmhRTLvVU0kX1PZbkBnWSA-d0"; /* public key for phone notifications */ /* closing-time reminder on the Home page */
       const $ = (s) => document.querySelector(s);
       if (SUPABASE_URL.includes("YOUR-PROJECT")) {
         document.body.innerHTML =
@@ -1349,7 +1501,11 @@
         pin: "My PIN",
         settings: "Settings",
         import: "Import from Excel",
+        notif: "Notifications",
+        sumStock: "Daily stock report",
+        sumToilet: "Toilet report",
       };
+      const PARENT = { sumStock: "sum", sumToilet: "sum" };
       let ITEMS = [],
         ALL = [],
         AREAS = ["All"],
@@ -1398,7 +1554,18 @@
       const U = (i, k) => R(i.id)[k] || i[k];
       const nameOf = (id) => (ALL.find((i) => i.id === id) || {}).name || id;
       const isMgr = () => S.user && S.user.role !== "staff";
+      const can = (m) =>
+        S.user.role !== "staff" || (S.user.modules || []).includes(m);
       const touched = (r) => has(r.cooked) || has(r.raw);
+      const tot = (r) => (+r.cooked || 0) + (+r.raw || 0);
+      const isOut = (i) => {
+        const r = R(i.id);
+        return touched(r) && tot(r) === 0;
+      }; /* both fields zero = out of stock */
+      const isLow = (i) => {
+        const r = R(i.id);
+        return touched(r) && tot(r) > 0 && tot(r) <= LOW_MAX;
+      }; /* 1 or 2 left = very little left */
       const isDirty = (id) => !!R(id).dirty;
       const pending = () => ITEMS.filter((i) => isDirty(i.id)).length;
       const ordered = () =>
@@ -1601,6 +1768,7 @@
           );
           return false;
         }
+        queueStock(ids.length);
         if (!quiet) toast(ids.length > 1 ? "All saved ✓" : "Saved ✓");
         fetchLog(S.date).then((l) => (S.day.log = l));
         return true;
@@ -1630,6 +1798,7 @@
           renderFin();
           return;
         }
+        flushStock();
         const { data, error } = await sb.functions.invoke("send-report", {
           body: { day: S.date },
         });
@@ -1695,37 +1864,25 @@
       function badges(i) {
         const r = R(i.id);
         let m = "";
+        if (isOut(i)) m += '<span class="b d">🚨 Out of stock</span>';
+        else if (isLow(i)) m += '<span class="b w">⚠ Very little left</span>';
+        const n = need(i);
+        if (n.c) m += `<span class="b w">🍳 Cook +${n.c}</span>`;
+        if (n.r) m += `<span class="b w">Raw low +${n.r}</span>`;
         if (r.use) {
           const d = Math.round((new Date(r.use) - new Date(S.date)) / 864e5);
-          m +=
-            d < 0
-              ? `<span class="b d">⚠ Expired ${-d}d ago</span>`
-              : d == 0
-                ? '<span class="b d">⚠ Use today</span>'
-                : d <= 2
-                  ? `<span class="b w">⏳ ${d}d left</span>`
-                  : `<span class="b g">Use by ${String(r.use).slice(5)}</span>`;
+          if (d < 0) m += '<span class="b d">⚠ Expired</span>';
+          else if (d === 0) m += '<span class="b d">⚠ Use today</span>';
+          else if (d <= 2) m += `<span class="b w">⏳ ${d}d left</span>`;
         }
-        if (touched(r) && !+r.cooked && !+r.raw)
-          m += '<span class="b d">Out of stock</span>';
-        m += needB(i);
-        if (r.carried && r.from) {
-          const dd = Math.round((new Date(S.date) - new Date(r.from)) / 864e5);
-          if (dd >= 3)
-            m += `<span class="b w">⏳ not updated for ${dd} days</span>`;
-        }
-        return (
-          m +
-          (r.by
-            ? `<span>✏️ ${esc(r.by)} (#${esc(r.num)}) · ${dtm(r.at)}</span>`
-            : "<span>Never counted</span>")
-        );
+        return m;
       }
       const isAlert = (i) => {
         const r = R(i.id);
         return (
           (r.use && r.use <= S.date) ||
-          (touched(r) && !+r.cooked && !+r.raw) ||
+          isOut(i) ||
+          isLow(i) ||
           need(i).c ||
           need(i).r
         );
@@ -1735,21 +1892,60 @@
           o = UNITS.includes(v) ? UNITS : [...UNITS, v];
         return `<select class="un" data-u="${k}">${o.map((u) => `<option${u === v ? " selected" : ""}>${u}</option>`).join("")}</select>`;
       };
-      const qty = (i, f, lab, k) => {
+      const OPEN = new Set();
+      const tile = (i, f, lab, k) => {
         const v = R(i.id)[f],
           e = !has(v);
-        return `<div><div class="lb">${lab}</div><div class="st"><button class="qv${e ? " e" : ""}" data-a="pick" data-f="${f}">${e ? "Tap" : esc(v)}</button>${unitSel(i, k)}</div></div>`;
+        return `<button class="qt${e ? " e" : ""}" data-a="pick" data-f="${f}"><span class="lb">${lab}</span><span class="qn">${e ? "–" : esc(v)}</span><span class="qu">${esc(U(i, k))}</span></button>`;
       };
       function card(i) {
         const r = R(i.id),
           d = isDirty(i.id),
-          w = r.waste,
-          pv = (S.prev[i.id] || {}).cooked;
+          op = OPEN.has(i.id),
+          w = r.waste;
         return `<div class="card ${d ? "dirty" : ""}" data-id="${i.id}">
- <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${esc(areaOf(i))}${has(pv) && String(pv) !== String(r.cooked) ? " · was " + pv : ""}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
- <div class="q2">${qty(i, "cooked", "Cooked / Defrosted", "pu")}${qty(i, "raw", "Live / Raw / Frozen", "ru")}</div>
- <div class="ex"><input data-f="use" type="date" value="${esc(r.use)}" title="Use-by / Prep date"><input data-f="note" placeholder="📝 Note (optional)" value="${esc(r.note)}"><button class="wq" data-a="pick" data-f="waste">${has(w) ? "☠ Dead / waste: " + esc(w) : "☠ Dead / waste qty"}</button></div>
- <div class="mt">${badges(i)}</div></div>`;
+ <div class="r"><div class="ic">${ico(i)}</div><div class="sp"><div class="nm">${esc(i.name)}</div><div class="sub">${esc(areaOf(i))}</div></div><button class="tick" data-a="save" aria-label="Save">✓</button></div>
+ <div class="q2">${tile(i, "cooked", "Cooked", "pu")}${tile(i, "raw", "Raw", "ru")}</div>
+ <div class="mt">${badges(i)}</div>
+ <div class="foot"><span class="sub">${r.by ? esc(r.by) + " · " + dtm(r.at) : "Not counted yet"}</span><button class="more" data-a="more">${op ? "Less ▴" : "More ▾"}</button></div>
+ <div class="extra" ${op ? "" : "hidden"}>
+  <div class="r" style="gap:10px"><div class="sp"><div class="lb">Use-by date</div><input data-f="use" type="date" value="${esc(r.use)}"></div><div class="sp"><div class="lb">Note</div><input data-f="note" placeholder="Optional" value="${esc(r.note)}"></div></div>
+  <button class="wq" data-a="pick" data-f="waste" style="grid-column:auto">${has(w) ? "☠ Dead / waste: " + esc(w) : "☠ Dead / waste"}</button>
+  <div class="r" style="gap:10px"><div class="sp"><div class="lb">Cooked unit</div>${unitSel(i, "pu")}</div><div class="sp"><div class="lb">Raw unit</div>${unitSel(i, "ru")}</div></div>
+ </div></div>`;
+      }
+      const stockRows = (a) =>
+        a
+          .map(
+            (i) =>
+              `<div class="lg">${ico(i)} <b>${esc(i.name)}</b> <span class="sub">${R(i.id).cooked || 0} ${esc(U(i, "pu"))} cooked · ${R(i.id).raw || 0} ${esc(U(i, "ru"))} raw</span></div>`,
+          )
+          .join("");
+      function stockAlerts() {
+        const out = ITEMS.filter(isOut),
+          low = ITEMS.filter(isLow);
+        return (
+          (out.length
+            ? `<div class="pn"><h3>🚨 Out of stock (${out.length})</h3>${stockRows(out)}</div>`
+            : "") +
+          (low.length
+            ? `<div class="pn"><h3>⚠ Very little left (${low.length})</h3>${stockRows(low)}</div>`
+            : "")
+        );
+      }
+      let ALOPEN = false;
+      function alertsBox() {
+        const out = ITEMS.filter(isOut),
+          low = ITEMS.filter(isLow);
+        if (!out.length && !low.length) return "";
+        return `<div class="al"><button class="alh"><span>${[out.length ? `🚨 ${out.length} out of stock` : "", low.length ? `⚠ ${low.length} very little left` : ""].filter(Boolean).join(" · ")}</span><span>${ALOPEN ? "▴" : "▾"}</span></button>${ALOPEN ? `<div class="alb">${out.length ? `<div class="sub" style="margin-top:8px"><b>Out of stock</b></div>${stockRows(out)}` : ""}${low.length ? `<div class="sub" style="margin-top:8px"><b>Very little left</b></div>${stockRows(low)}` : ""}</div>` : ""}</div>`;
+      }
+      function stockBanner() {
+        const o = ITEMS.filter(isOut).length,
+          l = ITEMS.filter(isLow).length;
+        return o || l
+          ? `<div class="banner red" data-go="check" style="cursor:pointer">${[o ? `🚨 ${o} out of stock` : "", l ? `⚠ ${l} very little left` : ""].filter(Boolean).join(" · ")} ›</div>`
+          : "";
       }
       const rep = (id) => {
         const c = document.querySelector(`.card[data-id="${id}"]`),
@@ -1788,6 +1984,7 @@
             }
             h += card(i);
           });
+        $("#alerts").innerHTML = alertsBox();
         $("#list").innerHTML = h || '<div class="em">Nothing here 🎉</div>';
         $("#chips").innerHTML = AREAS.map(
           (c) =>
@@ -1895,17 +2092,20 @@
             minute: "2-digit",
           }) >= REMIND_AT &&
           done < t;
-        const T = [
-          [
+        const T = [];
+        if (can("stock"))
+          T.push([
             "check",
             "📋",
             "Daily stock check",
             `${done} / ${t} updated ${S.date === today() ? "today" : S.date}`,
-          ],
-          ["toilet", "🚻", "Toilet check", toiletSub(tsl)],
-        ];
-        if (!isMgr()) T.push(["sum", "🍳", "To prep", "What to cook now"]);
-        else
+          ]);
+        if (can("toilet"))
+          T.push(["toilet", "🚻", "Toilet check", toiletSub(tsl)]);
+        if (!isMgr()) {
+          if (can("stock"))
+            T.push(["sum", "🍳", "To prep", "What to cook now"]);
+        } else
           T.push(
             ["sum", "📊", "Summary", "Everything at a glance"],
             ["par", "🎯", "Targets", "Minimum stock"],
@@ -1932,10 +2132,12 @@
               ? `🩺 ${errs} problem${errs > 1 ? "s" : ""} in 24h`
               : "Hours, backup, health check",
           ]);
+        T.push(["notif", "🔔", "Notifications", notifSub()]);
         T.push(["pin", "🔑", "My PIN", "Change your PIN"]);
         $("#v-home").innerHTML =
-          toiletBanner(tsl) +
-          (late
+          (can("toilet") ? toiletBanner(tsl) : "") +
+          (can("stock") ? stockBanner() : "") +
+          (late && can("stock")
             ? `<div class="banner">⏰ Stock not updated yet today — ${t - done} item${t - done > 1 ? "s" : ""} untouched</div>`
             : "") +
           (n
@@ -1970,7 +2172,8 @@
           const e = ev.filter((x) => x.slot_hour === h),
             ck = e.find((x) => x.status === "checked"),
             ne = e.find((x) => x.status === "not_needed"),
-            bz = e.filter((x) => x.status === "busy");
+            bz = e.filter((x) => x.status === "busy"),
+            rs = e.filter((x) => x.status === "reason").pop();
           const st = ck
             ? hourOf(new Date(ck.at)) > h
               ? "late"
@@ -1984,7 +2187,7 @@
                   : bz.length
                     ? "busy"
                     : "due";
-          out.push({ h, st, ck, ne, bz });
+          out.push({ h, st, ck, ne, bz, rs });
         }
         return out;
       }
@@ -2040,14 +2243,16 @@
         const rows = sl
           .map((s) => {
             const [t, c] = lab[s.st],
-              who = s.ck
-                ? `${esc(s.ck.who)} · ${tm(s.ck.at)}`
-                : s.bz.length
-                  ? `busy: ${esc(s.bz[0].who)}${s.bz[0].note ? " – " + esc(s.bz[0].note) : ""}`
-                  : s.ne
-                    ? esc(s.ne.who)
-                    : "";
-            return `<div class="lg r" style="${s.st === "future" ? "opacity:.45" : ""}"><b style="width:52px">${hh(s.h)}</b><span class="b ${c}">${t || "Later"}</span><span class="sub sp">${who}</span>${s.st === "missed" || (s.st === "busy" && s.h !== H) ? `<button class="b" data-th="checked" data-h="${s.h}" style="padding:8px 12px">✓ Done now</button>` : ""}${isMgr() && (s.st === "ok" || s.st === "late" || s.st === "skip") ? `<button class="b" data-tv="${(s.ck || s.ne).id}" style="padding:8px 12px">↩ Void</button>` : ""}</div>`;
+              who =
+                (s.ck
+                  ? `${esc(s.ck.who)} · ${tm(s.ck.at)}${s.ck.note ? " – " + esc(s.ck.note) : ""}`
+                  : s.bz.length
+                    ? `busy: ${esc(s.bz[0].who)}${s.bz[0].note ? " – " + esc(s.bz[0].note) : ""}`
+                    : s.ne
+                      ? `${esc(s.ne.who)}${s.ne.note ? " – " + esc(s.ne.note) : ""}`
+                      : "") +
+                (s.rs ? ` · why: ${esc(s.rs.note)} (${esc(s.rs.who)})` : "");
+            return `<div class="lg r" style="${s.st === "future" ? "opacity:.45" : ""}"><b style="width:52px">${hh(s.h)}</b><span class="b ${c}">${t || "Later"}</span><span class="sub sp">${who}</span>${s.st === "missed" || (s.st === "busy" && s.h !== H) ? `<button class="b" data-rs="${s.h}" style="padding:8px 12px">✍ Explain</button>` : ""}${isMgr() && (s.st === "ok" || s.st === "late" || s.st === "skip") ? `<button class="b" data-tv="${(s.ck || s.ne).id}" style="padding:8px 12px">↩ Void</button>` : ""}</div>`;
           })
           .join("");
         const pr = TOI.filter((x) => x.status === "problem" && !x.voided);
@@ -2065,6 +2270,11 @@
             : "");
       }
       $("#v-toilet").onclick = async (e) => {
+        const rb = e.target.closest("[data-rs]");
+        if (rb) {
+          openReason(+rb.dataset.rs);
+          return;
+        }
         const v = e.target.closest("[data-tv],[data-tr]");
         if (v) {
           const res = v.dataset.tr !== undefined,
@@ -2111,24 +2321,28 @@
           return;
         }
         if (st === "checked") pop("✨");
+        if (st === "checked" || st === "problem") notifyServer("toilet");
         toast(st === "problem" ? "Problem reported ✓" : "Saved ✓");
         toiletView();
       };
       const MODULES = [
-        /* add a new form here later (Opening, Closing...) and it shows up in Summary automatically */
+        /* add a new form here later (Opening, Closing...) and it appears in Summary automatically */
         {
           icon: "📋",
-          name: "Daily stock check",
+          name: "Daily stock report",
+          page: "sumStock",
           go: "check",
           summary: stockSummary,
         },
         {
           icon: "🚻",
-          name: "Toilet check",
+          name: "Toilet report",
+          page: "sumToilet",
           go: "toilet",
           summary: toiletSummary,
         },
       ];
+      const T3 = { g: "On track", a: "Needs attention", r: "Action needed" };
       const nmList = (a) =>
         esc(
           a
@@ -2142,9 +2356,8 @@
         const done = ITEMS.filter((i) => R(i.id).done).length,
           t = ITEMS.length,
           sent = S.day.pushes[0];
-        const out = ITEMS.filter(
-            (i) => touched(R(i.id)) && !+R(i.id).cooked && !+R(i.id).raw,
-          ),
+        const out = ITEMS.filter(isOut),
+          low = ITEMS.filter(isLow),
           exp = ITEMS.filter((i) => R(i.id).use && R(i.id).use <= S.date);
         const soon = ITEMS.filter((i) => {
           const u = R(i.id).use;
@@ -2171,6 +2384,8 @@
             sev: "r",
             text: `${exp.length} past use-by: ${nmList(exp)}`,
           });
+        if (low.length)
+          issues.push({ sev: "a", text: `Very little left: ${nmList(low)}` });
         if (cook.length)
           issues.push({
             sev: "a",
@@ -2193,13 +2408,6 @@
         S.day.log
           .filter((l) => l.f === "done" && l.val)
           .forEach((l) => (lb[l.who] = (lb[l.who] || 0) + 1));
-        const lst = (a) =>
-          a
-            .map(
-              (i) =>
-                `<div class="lg">${ico(i)} <b>${esc(i.name)}</b> <span class="sub">${R(i.id).use && R(i.id).use <= S.date ? "use-by " + R(i.id).use : "0 left"}</span></div>`,
-            )
-            .join("");
         const areas = AREAS.slice(1)
           .map((c) => {
             const a = ITEMS.filter((i) => areaOf(i) === c),
@@ -2207,6 +2415,13 @@
             return `<div style="margin-bottom:8px"><div class="r"><span>📍 ${esc(c)}</span><span class="sp"></span><b>${d}/${a.length}</b></div><div class="bar"><i style="width:${a.length ? (d / a.length) * 100 : 0}%"></i></div></div>`;
           })
           .join("");
+        const lst = (a) =>
+          a
+            .map(
+              (i) =>
+                `<div class="lg">${ico(i)} <b>${esc(i.name)}</b> <span class="sub">use-by ${R(i.id).use}</span></div>`,
+            )
+            .join("");
         return {
           st: issues.some((x) => x.sev === "r")
             ? "r"
@@ -2222,14 +2437,12 @@
               .map(([a, n]) => `✏️ ${esc(a)} ${n}`),
           ],
           detail:
+            stockAlerts() +
             prepPanel() +
-            (out.length
-              ? `<div class="pn"><h3>🚨 Out of stock</h3>${lst(out)}</div>`
-              : "") +
             (exp.length
               ? `<div class="pn"><h3>⏳ Use-by reached</h3>${lst(exp)}</div>`
               : "") +
-            `<div class="pn"><h3>Updated today by area</h3>${areas}</div><div class="r" style="gap:8px"><button class="pb s" id="copyl" style="margin:0;flex:1">📋 Copy cook list</button><button class="pb s" id="csv" style="margin:0;flex:1">⬇ CSV</button></div>`,
+            `<div class="pn"><h3>Updated today by area</h3>${areas}</div><div class="r" style="gap:8px;margin-bottom:10px"><button class="pb s" id="copyl" style="margin:0;flex:1">📋 Copy cook list</button><button class="pb s" id="csv" style="margin:0;flex:1">⬇ CSV</button></div>`,
         };
       }
       async function toiletSummary() {
@@ -2249,7 +2462,7 @@
         if (missed.length)
           issues.push({
             sev: "r",
-            text: `Missed toilet checks: ${missed.map((s) => hh(s.h)).join(", ")}`,
+            text: `Missed toilet checks: ${missed.map((s) => hh(s.h) + (s.rs ? ` (${esc(s.rs.note)})` : " (no reason given)")).join(", ")}`,
           });
         if (two)
           issues.push({
@@ -2292,15 +2505,21 @@
             `✕ ${missed.length} missed`,
           ],
           detail:
-            `<div class="slots">${sl.map((s) => `<span class="slot ${cls[s.st]}">${hh(s.h)}</span>`).join("")}</div>` +
+            `<div class="pn"><h3>Today, hour by hour</h3><div class="slots">${sl.map((s) => `<span class="slot ${cls[s.st]}">${hh(s.h)}</span>`).join("")}</div></div>` +
             (probs.length
               ? `<div class="pn"><h3>⚠ Problems today</h3>${probs.map((x) => `<div class="lg"><b>${esc(x.who)}</b> <span class="sub">${hh(x.slot_hour)}</span><br>${esc(x.note)}</div>`).join("")}</div>`
               : ""),
         };
       }
+      function subPage(m, s, extra) {
+        return `<div class="r" style="margin-bottom:10px"><span style="font-size:30px">${m.icon}</span><div class="sp"><b style="font-size:18px;font-family:Georgia,serif">${m.name}</b><div class="sub">${s.head}</div></div><span class="pill ${s.st}">${T3[s.st]}</span><button class="b" id="sref" style="padding:9px 14px;margin-left:8px">↻</button></div>
+ <div class="r" style="flex-wrap:wrap;gap:6px;margin-bottom:10px">${s.chips.map((c) => `<span class="b">${c}</span>`).join("")}</div>
+ ${s.issues.length ? `<div class="pn"><h3>Needs attention</h3>${s.issues.map((x) => `<div class="lg"><span class="b ${x.sev === "r" ? "d" : "w"}">${x.sev === "r" ? "Urgent" : "Check"}</span> ${x.text}</div>`).join("")}</div>` : '<div class="pn"><div class="sub">✅ Nothing needs attention.</div></div>'}
+ ${s.detail}${extra || ""}<button class="pb s" data-go="${m.go}">Open the form ›</button>`;
+      }
       async function sumView() {
         if (!isMgr()) {
-          $("#v-sum").innerHTML = prepPanel();
+          $("#v-sum").innerHTML = stockAlerts() + prepPanel();
           return;
         }
         $("#v-sum").innerHTML = '<div class="em">Loading…</div>';
@@ -2309,21 +2528,35 @@
           ),
           rank = { g: 0, a: 1, r: 2 };
         const worst = M.reduce(
-            (w, x) => (rank[x.s.st] > rank[w] ? x.s.st : w),
-            "g",
-          ),
-          T = { g: "On track", a: "Needs attention", r: "Action needed" };
+          (w, x) => (rank[x.s.st] > rank[w] ? x.s.st : w),
+          "g",
+        );
         const issues = M.flatMap(({ m, s }) =>
           s.issues.map((i) => ({ ...i, m })),
-        ).sort((a, b) => (b.sev === "r") - (a.sev === "r"));
+        )
+          .sort((a, b) => (b.sev === "r") - (a.sev === "r"))
+          .slice(0, 6);
         $("#v-sum").innerHTML =
-          `<div class="r" style="margin-bottom:12px"><div class="sp"><b style="font-family:Georgia,serif;font-size:18px">${new Date(S.date + "T00:00").toLocaleDateString([], { weekday: "long", day: "numeric", month: "short" })}</b><div class="sub">Overall <span class="pill ${worst}">${T[worst]}</span></div></div><button class="b" id="sref" style="padding:9px 14px">↻ Refresh</button></div>
- <div class="pn"><h3>🚨 Needs attention</h3>${issues.map((i) => `<div class="lg" data-go="${i.m.go}" style="cursor:pointer"><span class="b ${i.sev === "r" ? "d" : "w"}">${i.m.icon} ${i.m.name}</span><br>${i.text} <span class="sub">›</span></div>`).join("") || '<div class="sub">✅ All clear — nothing needs attention.</div>'}</div>` +
+          `<div class="r" style="margin-bottom:12px"><div class="sp"><b style="font-family:Georgia,serif;font-size:18px">${new Date(S.date + "T00:00").toLocaleDateString([], { weekday: "long", day: "numeric", month: "short" })}</b><div class="sub">Overall <span class="pill ${worst}">${T3[worst]}</span></div></div><button class="b" id="sref" style="padding:9px 14px">↻ Refresh</button></div>` +
           M.map(
             ({ m, s }) =>
-              `<details class="mod ${s.st}"><summary><span style="font-size:26px">${m.icon}</span><div class="sp"><b>${m.name}</b><div class="sub">${s.head}</div></div><span class="pill ${s.st}">${T[s.st]}</span></summary><div class="mb"><div class="r" style="flex-wrap:wrap;gap:6px;margin-bottom:8px">${s.chips.map((c) => `<span class="b">${c}</span>`).join("")}</div>${s.detail}<button class="pb s" data-go="${m.go}">Open ${m.name} ›</button></div></details>`,
+              `<button class="sumcard ${s.st}" data-go="${m.page}"><span style="font-size:28px">${m.icon}</span><div class="sp"><b>${m.name}</b><div class="sub">${s.head}</div></div><span class="pill ${s.st}">${T3[s.st]}</span><span class="chev">›</span></button>`,
           ).join("") +
-          `<div class="pn"><h3>📧 Report email</h3><div class="sub" style="margin-bottom:6px">The final report is sent from the end of the Daily stock check, only when you press the button. Separate several addresses with commas.</div><input id="to" placeholder="Manager's email" value="${esc(EMAIL)}"><button class="pb" id="semail">Save email</button></div>`;
+          `<div class="pn"><h3>Needs attention</h3>${issues.map((i) => `<div class="lg" data-go="${i.m.page}" style="cursor:pointer"><span class="b ${i.sev === "r" ? "d" : "w"}">${i.m.icon} ${i.m.name}</span><br>${i.text} <span class="sub">›</span></div>`).join("") || '<div class="sub">✅ All clear — nothing needs attention.</div>'}</div>`;
+      }
+      async function sumStockView() {
+        $("#v-sumStock").innerHTML = subPage(
+          MODULES[0],
+          stockSummary(),
+          `<div class="pn"><h3>📧 Report email</h3><div class="sub" style="margin-bottom:6px">The final report is sent from the end of the Daily stock check, only when you press the button. Separate several addresses with commas.</div><input id="to" placeholder="Manager's email" value="${esc(EMAIL)}"><button class="pb" id="semail">Save email</button></div>`,
+        );
+      }
+      async function sumToiletView() {
+        $("#v-sumToilet").innerHTML = '<div class="em">Loading…</div>';
+        $("#v-sumToilet").innerHTML = subPage(
+          MODULES[1],
+          await toiletSummary(),
+        );
       }
       let ACT_DAYS = 1;
       const lowerFirst = (m) => m.charAt(0).toLowerCase() + m.slice(1);
@@ -2393,12 +2626,14 @@
                 t: +new Date(x.at),
                 text:
                   x.status === "checked"
-                    ? `${w} checked the toilets (${h})${hourOf(new Date(x.at)) > x.slot_hour ? " — late" : ""}`
+                    ? `${w} checked the toilets (${h})${hourOf(new Date(x.at)) > x.slot_hour ? " — late" + (x.note ? ": " + esc(x.note) : "") : ""}`
                     : x.status === "busy"
                       ? `${w} marked the toilets busy (${h})${x.note ? " — " + esc(x.note) : ""}`
                       : x.status === "not_needed"
                         ? `${w} marked the ${h} check not needed${x.note ? " — " + esc(x.note) : ""}`
-                        : `${w} reported a toilet problem: ${esc(x.note)}`,
+                        : x.status === "reason"
+                          ? `${w} explained the ${h} check: ${esc(x.note)}`
+                          : `${w} reported a toilet problem: ${esc(x.note)}`,
               };
               return x.voided
                 ? [
@@ -2539,6 +2774,11 @@
         $("#v-pin").innerHTML =
           `<div class="pn"><h3>🔑 ${S.force ? "Choose your own PIN" : "Change my PIN"}</h3>${S.force ? '<div class="sub" style="margin-bottom:8px">Your PIN was set by the boss. Choose a private one to continue.</div>' : '<div class="lb">Current PIN</div><input id="pc0" type="password" inputmode="numeric" placeholder="Current PIN">'}<div class="lb" style="margin-top:10px">New PIN (6-12 digits)</div><input id="pc1" type="password" inputmode="numeric" placeholder="New PIN"><div class="lb" style="margin-top:10px">Repeat new PIN</div><input id="pc2" type="password" inputmode="numeric" placeholder="Repeat new PIN"><button class="pb" id="pcs">Save new PIN</button></div>`;
       }
+      const DEPT = {
+        boh: "Back of house (kitchen)",
+        foh: "Front of house",
+        both: "Both",
+      };
       async function teamView() {
         const [us, rq] = await Promise.all([
           q(sb.from("profiles").select("*").order("staff_num")),
@@ -2550,7 +2790,16 @@
               .order("at", { ascending: false }),
           ),
         ]);
-        const seen = new Set();
+        const seen = new Set(),
+          dopts = (v) =>
+            Object.entries(DEPT)
+              .map(
+                ([k, t]) =>
+                  `<option value="${k}"${k === v ? " selected" : ""}>${t}</option>`,
+              )
+              .join("");
+        const box = (u, m, l) =>
+          `<label class="r" style="gap:4px"><input type="checkbox" data-um="${m}" ${(u.modules || []).includes(m) ? "checked" : ""} style="width:20px;height:20px">${l}</label>`;
         $("#v-team").innerHTML =
           (rq.length
             ? `<div class="pn"><h3>🔔 PIN reset requests</h3>${rq
@@ -2561,8 +2810,20 @@
                 )
                 .join("")}</div>`
             : "") +
-          `<div class="pn"><h3>➕ Create account</h3><input id="tn" placeholder="Staff number"><input id="tm" placeholder="Full name" style="margin-top:8px"><input id="tp" inputmode="numeric" placeholder="Starting PIN (6-12 digits)" style="margin-top:8px"><select id="tr" style="margin-top:8px"><option value="staff">Employee</option><option value="manager">Manager</option><option value="owner">Boss</option></select><div class="sub" style="margin-top:6px">They will be asked to choose their own PIN the first time they sign in.</div><button class="pb" id="tadd">Create account</button></div>
- <div class="pn"><h3>👥 Team (${us.length})</h3>${us.map((u) => `<div class="lg"><b>${esc(u.full_name)}</b> <span class="b">#${esc(u.staff_num)}</span> ${u.active ? "" : '<span class="b d">disabled</span>'}<div class="r" style="margin-top:6px"><select data-ur="${esc(u.staff_num)}" style="width:auto">${["staff", "manager", "owner"].map((r) => `<option value="${r}"${u.role === r ? " selected" : ""}>${ROLE[r]}</option>`).join("")}</select><button class="b ${u.active ? "d" : "g"}" data-ut="${esc(u.staff_num)}" data-on="${u.active ? 0 : 1}" style="padding:8px 14px">${u.active ? "Disable" : "Enable"}</button><button class="b w" data-up="${esc(u.staff_num)}" style="padding:8px 14px">Reset PIN</button></div></div>`).join("")}</div>`;
+          `<div class="pn"><h3>➕ Create account</h3><input id="tn" placeholder="Staff number"><input id="tm" placeholder="Full name" style="margin-top:8px"><input id="te" type="email" placeholder="Email (optional)" style="margin-top:8px"><input id="tp" inputmode="numeric" placeholder="Starting PIN (6-12 digits)" style="margin-top:8px"><select id="tr" style="margin-top:8px"><option value="staff">Employee</option><option value="manager">Manager</option><option value="owner">Boss</option></select>
+ <div class="lb" style="margin-top:10px">Works in</div><select id="td">${dopts("boh")}</select>
+ <div class="lb" style="margin-top:10px">Can open (employees only — managers and the boss see everything)</div><div class="r" style="gap:16px"><label class="r" style="gap:6px"><input type="checkbox" id="tm1" checked style="width:20px;height:20px">📋 Daily stock</label><label class="r" style="gap:6px"><input type="checkbox" id="tm2" style="width:20px;height:20px">🚻 Toilet check</label></div>
+ <div class="sub" style="margin-top:6px">They will be asked to choose their own PIN the first time they sign in.</div><button class="pb" id="tadd">Create account</button></div>
+ <div class="pn"><h3>👥 Team (${us.length})</h3>${us
+   .map(
+     (
+       u,
+     ) => `<div class="lg" data-row="${esc(u.staff_num)}"><b>${esc(u.full_name)}</b> <span class="b">#${esc(u.staff_num)}</span> ${u.active ? "" : '<span class="b d">disabled</span>'}<div class="sub">${DEPT[u.dept] || ""}${u.email ? " · " + esc(u.email) : ""}</div>
+ <div class="r" style="margin-top:6px"><select data-ur="${esc(u.staff_num)}" style="width:auto">${["staff", "manager", "owner"].map((r) => `<option value="${r}"${u.role === r ? " selected" : ""}>${ROLE[r]}</option>`).join("")}</select><button class="b ${u.active ? "d" : "g"}" data-ut="${esc(u.staff_num)}" data-on="${u.active ? 0 : 1}" style="padding:8px 14px">${u.active ? "Disable" : "Enable"}</button><button class="b w" data-up="${esc(u.staff_num)}" style="padding:8px 14px">Reset PIN</button></div>
+ <div class="r" style="margin-top:8px;gap:12px"><select data-ud="1" style="flex:1">${dopts(u.dept || "both")}</select>${u.role === "staff" ? box(u, "stock", "📋") + box(u, "toilet", "🚻") : '<span class="sub">sees everything</span>'}</div>
+ <input data-ue="1" type="email" placeholder="Email" value="${esc(u.email || "")}" style="margin-top:8px"></div>`,
+   )
+   .join("")}</div>`;
       }
       async function admin(body) {
         const { data, error } = await sb.functions.invoke("staff-admin", {
@@ -2636,6 +2897,7 @@
         if (c.day_starts !== undefined && c.day_starts !== "")
           DAY_STARTS = +c.day_starts;
         if (c.remind_at) REMIND_AT = c.remind_at;
+        if (c.low_max) LOW_MAX = +c.low_max;
         EMAIL = c.report_email || "";
       }
       let ERRN = 0;
@@ -2676,6 +2938,8 @@
  <div class="pn"><h3>🔔 Reminder time</h3><div class="sub" style="margin-bottom:6px">After this time the Home page reminds people if stock has not been updated.</div><input type="time" data-set="remind_at" value="${esc(REMIND_AT)}"></div>
  <div class="pn"><h3>🌍 Time zone</h3><input data-set="timezone" list="tzs" value="${esc(lon.timeZone)}"><datalist id="tzs"><option value="Europe/London"><option value="Europe/Dublin"><option value="Europe/Paris"><option value="America/New_York"><option value="Asia/Kathmandu"><option value="Asia/Dubai"><option value="Australia/Sydney"></datalist></div>
  <div class="pn"><h3>📧 Report email</h3><input data-set="report_email" placeholder="Manager's email" value="${esc(EMAIL)}"></div>
+ <div class="pn"><h3>⚠ "Very little left" means</h3><div class="sub" style="margin-bottom:6px">Zero in both Cooked and Raw is Out of stock. This many or fewer (cooked + raw together) is flagged as very little left.</div><select data-set="low_max">${[1, 2, 3, 4, 5, 6, 8, 10].map((n) => `<option value="${n}"${n === LOW_MAX ? " selected" : ""}>${n} or fewer</option>`).join("")}</select></div>
+ <div class="pn"><h3>🔔 Email as a back-up</h3><div class="sub" style="margin-bottom:6px">If someone has not turned on phone notifications, also email them (needs their email on the Team page).</div><select data-set="notify_email_fallback"><option value="0"${CFG.notify_email_fallback === "1" ? "" : " selected"}>No</option><option value="1"${CFG.notify_email_fallback === "1" ? " selected" : ""}>Yes</option></select></div>
  <div class="pn"><h3>🔎 Setup check</h3><div class="sub" style="margin-bottom:6px">Tests that the tables, functions and email service are all connected.</div><button class="pb s" id="hc">Run setup check</button><div id="hcr"></div></div>
  <div class="pn"><h3>💾 Backup</h3><div class="sub" style="margin-bottom:6px">Downloads all stock, toilet, account and activity data in one file. Do this regularly while on the free Supabase plan.</div><button class="pb s" id="bk">⬇ Download full backup</button></div>
  <div class="pn"><h3>🩺 App problems</h3>${err.map((x) => `<div class="lg"><b>${esc(x.who || "?")}</b> <span class="sub">${dtm(+new Date(x.at))} · ${esc(x.page || "")} · v${esc(x.version || "")}</span><br>${esc(x.message)}</div>`).join("") || '<div class="sub">No problems reported 👍</div>'}</div>`;
@@ -2796,7 +3060,7 @@
               /could not find|does not exist|schema cache/i.test(error.message);
           add("Function: " + fn, !missing, error && error.message);
         }
-        for (const fn of ["staff-admin", "send-report"]) {
+        for (const fn of ["staff-admin", "send-report", "notify"]) {
           const { data, error } = await sb.functions.invoke(fn, {
             body: { action: "ping", day: "x" },
           });
@@ -2981,6 +3245,8 @@
           });
           error ? fail++ : ok++;
         }
+        queueStock(ok);
+        flushStock();
         await loadItems();
         await openDay(date);
         toast(
@@ -3015,6 +3281,192 @@
           renderImp();
         }
       };
+      /* ---------- toilet: explain a late or missed hour ---------- */
+      const RS_QUICK = [
+        "Busy with customers",
+        "Short on staff",
+        "No customers",
+        "Forgot",
+        "Toilet closed / out of order",
+      ];
+      let RS = null;
+      function openReason(h) {
+        RS = h;
+        const s = toiletSlots(TOI).find((x) => x.h === h);
+        $("#rst").textContent =
+          `${hh(h)} toilet check — ${s && s.st === "busy" ? "it was busy and not checked" : "not done"}. Why?`;
+        $("#rsc").innerHTML = RS_QUICK.map(
+          (r) => `<button class="chip" data-q="${esc(r)}">${esc(r)}</button>`,
+        ).join("");
+        $("#rsi").value = s && s.rs ? s.rs.note : "";
+        $("#rsn").hidden = !isMgr();
+        $("#rsb").hidden = false;
+      }
+      async function saveReason(status) {
+        const note = $("#rsi").value.trim();
+        if (!note) {
+          toast("Pick or type a reason first");
+          return;
+        }
+        const { error } = await sb
+          .from("toilet_checks")
+          .insert({ slot_hour: RS, status, note, user_id: S.user.id });
+        if (error) {
+          toast(error.message);
+          return;
+        }
+        $("#rsb").hidden = true;
+        toast("Saved ✓");
+        if (status === "checked") {
+          pop("✨");
+          notifyServer("toilet");
+        }
+        toiletView();
+      }
+      $("#rsc").onclick = (e) => {
+        const t = e.target.dataset.q;
+        if (t) {
+          $("#rsi").value = t;
+          [...$("#rsc").children].forEach((c) =>
+            c.classList.toggle("on", c === e.target),
+          );
+        }
+      };
+      $("#rsd").onclick = () => saveReason("checked");
+      $("#rsr").onclick = () => saveReason("reason");
+      $("#rsn").onclick = () => saveReason("not_needed");
+      $("#rsx").onclick = () => {
+        $("#rsb").hidden = true;
+      };
+      $("#rsb").onclick = (e) => {
+        if (e.target.id === "rsb") $("#rsb").hidden = true;
+      };
+      /* ---------- phone notifications ---------- */
+      const notifyServer = (type) => {
+        try {
+          sb.functions.invoke("notify", { body: { type } }).catch(() => {});
+        } catch (e) {}
+      };
+      let STK = { n: 0, t: null };
+      function queueStock(n) {
+        STK.n += n;
+        clearTimeout(STK.t);
+        STK.t = setTimeout(flushStock, 120000);
+      }
+      function flushStock() {
+        if (!STK.n) return;
+        STK.n = 0;
+        clearTimeout(STK.t);
+        notifyServer("stock");
+      }
+      addEventListener("visibilitychange", () => {
+        if (document.hidden) flushStock();
+      });
+      const urlB64 = (b) => {
+        const s = (b + "=".repeat((4 - (b.length % 4)) % 4))
+            .replace(/-/g, "+")
+            .replace(/_/g, "/"),
+          r = atob(s);
+        return Uint8Array.from([...r].map((c) => c.charCodeAt(0)));
+      };
+      async function pushState() {
+        if (
+          !("serviceWorker" in navigator) ||
+          !("PushManager" in window) ||
+          typeof Notification === "undefined"
+        )
+          return "unsupported";
+        if (Notification.permission === "denied") return "denied";
+        const reg = await navigator.serviceWorker.ready;
+        return (await reg.pushManager.getSubscription()) ? "on" : "off";
+      }
+      const notifSub = () =>
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted"
+          ? "On for this phone"
+          : "Turn on for this phone";
+      async function notifView() {
+        const st = await pushState(),
+          o = S.user.role === "owner",
+          f = S.user.dept === "foh" || S.user.dept === "both";
+        const what = [
+          o ? "📋 When someone updates the Daily stock check" : "",
+          f ? "🚻 When the toilets are checked or a problem is reported" : "",
+        ].filter(Boolean);
+        $("#v-notif").innerHTML =
+          `<div class="pn"><h3>🔔 Notifications on this phone</h3><div class="sub" style="margin-bottom:8px">${what.length ? "You will get a message:<br>" + what.join("<br>") : "Your account does not receive messages yet. Ask the boss to set where you work."}</div>
+ <div class="b ${st === "on" ? "g" : "w"}" style="margin-bottom:10px">${{ on: "✓ On for this phone", off: "Off", denied: "Blocked in your phone settings", unsupported: "Not available in this browser" }[st]}</div>
+ ${st === "off" ? '<button class="pb" id="pon">Turn on notifications</button>' : ""}${st === "on" ? '<button class="pb s" id="ptest">Send me a test</button><button class="pb s" id="poff">Turn off on this phone</button>' : ""}
+ ${st === "unsupported" ? '<div class="sub">On iPhone: open the app in Safari, tap Share → Add to Home Screen, then open it from the Home Screen icon and come back here.</div>' : ""}${st === "denied" ? '<div class="sub">Open your phone Settings → Notifications → this app, and allow them.</div>' : ""}</div>`;
+      }
+      async function pushOn() {
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") {
+          toast("Notifications were not allowed");
+          notifView();
+          return;
+        }
+        try {
+          const reg = await navigator.serviceWorker.ready,
+            sub =
+              (await reg.pushManager.getSubscription()) ||
+              (await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlB64(VAPID_PUBLIC),
+              })),
+            j = sub.toJSON();
+          const { error } = await sb
+            .from("push_subscriptions")
+            .upsert(
+              {
+                user_id: S.user.id,
+                endpoint: j.endpoint,
+                p256dh: j.keys.p256dh,
+                auth: j.keys.auth,
+              },
+              { onConflict: "endpoint" },
+            );
+          if (error) throw error;
+          toast("Notifications are on ✓");
+        } catch (e) {
+          toast("Could not turn on: " + (e.message || e));
+        }
+        notifView();
+      }
+      async function pushOff() {
+        try {
+          const reg = await navigator.serviceWorker.ready,
+            sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            await sb
+              .from("push_subscriptions")
+              .delete()
+              .eq("endpoint", sub.endpoint);
+            await sub.unsubscribe();
+          }
+          toast("Turned off");
+        } catch (e) {
+          toast("Could not turn off");
+        }
+        notifView();
+      }
+      $("#v-notif").onclick = async (e) => {
+        if (e.target.id === "pon") pushOn();
+        if (e.target.id === "poff") pushOff();
+        if (e.target.id === "ptest") {
+          const { data, error } = await sb.functions.invoke("notify", {
+            body: { type: "test" },
+          });
+          toast(
+            error || !data || data.error
+              ? "Test failed: " +
+                  ((data && data.error) || (error && error.message) || "")
+              : data.sent
+                ? "Test sent — check your phone"
+                : "No phone is signed up yet",
+          );
+        }
+      };
       /* ---------- navigation ---------- */
       const VIEWS = {
         home: homeView,
@@ -3029,9 +3481,19 @@
         pin: pinView,
         settings: settingsView,
         import: importView,
+        notif: notifView,
+        sumStock: sumStockView,
+        sumToilet: sumToiletView,
       };
       function go(p) {
         if (S.force) p = "pin";
+        if (
+          !isMgr() &&
+          (((p === "check" || p === "sum") && !can("stock")) ||
+            (p === "toilet" && !can("toilet")) ||
+            /^sum.+/.test(p))
+        )
+          p = "home";
         S.tab = p;
         Object.keys(TITLES).forEach((x) => ($("#v-" + x).hidden = x !== p));
         $("#pgbar").hidden = p === "home" || S.force;
@@ -3051,11 +3513,17 @@
           )
         )
           await saveAll(true);
-        go("home");
+        go(PARENT[S.tab] || "home");
       };
       $("#v-home").onclick = (e) => {
         const b = e.target.closest("[data-go]");
         if (b) go(b.dataset.go);
+      };
+      $("#alerts").onclick = (e) => {
+        if (e.target.closest(".alh")) {
+          ALOPEN = !ALOPEN;
+          $("#alerts").innerHTML = alertsBox();
+        }
       };
       $("#chips").onclick = (e) => {
         const c = e.target.dataset.c;
@@ -3076,6 +3544,13 @@
         if (!b) return;
         const id = b.closest(".card").dataset.id,
           a = b.dataset.a;
+        if (a === "more") {
+          const c = b.closest(".card");
+          OPEN.has(id) ? OPEN.delete(id) : OPEN.add(id);
+          c.querySelector(".extra").hidden = !OPEN.has(id);
+          b.textContent = OPEN.has(id) ? "Less ▴" : "More ▾";
+          return;
+        }
         if (a === "pick") {
           openPicker(id, b.dataset.f);
           return;
@@ -3113,6 +3588,7 @@
         if (e.target.id !== "finb") return;
         if (!isMgr()) {
           if (await saveAll(true)) {
+            flushStock();
             toast("All saved — well done ✓");
             pop("🎉");
             go("home");
@@ -3129,7 +3605,7 @@
           toast("Opened " + d);
         }
       };
-      $("#v-sum").onclick = async (e) => {
+      const sumClick = async (e) => {
         const id = e.target.id,
           g = e.target.closest("[data-go]");
         if (g) {
@@ -3138,7 +3614,7 @@
         }
         if (id === "sref") {
           await openDay(S.date);
-          sumView();
+          VIEWS[S.tab]();
           return;
         }
         if (id === "semail") {
@@ -3159,6 +3635,9 @@
             .then(() => toast("List copied ✓"))
             .catch(() => prompt("Copy this list:", listText()));
       };
+      ["sum", "sumStock", "sumToilet"].forEach(
+        (x) => ($("#v-" + x).onclick = sumClick),
+      );
       $("#v-par").onchange = async (e) => {
         const t = e.target;
         if (!t.dataset.p) return;
@@ -3284,6 +3763,12 @@
               name: $("#tm").value.trim(),
               pin: $("#tp").value.trim(),
               role: $("#tr").value,
+              email: $("#te").value.trim(),
+              dept: $("#td").value,
+              modules: [
+                $("#tm1").checked && "stock",
+                $("#tm2").checked && "toilet",
+              ].filter(Boolean),
             })
           ) {
             toast("Account created ✓");
@@ -3316,11 +3801,40 @@
         }
       };
       $("#v-team").onchange = async (e) => {
-        const n = e.target.dataset.ur;
-        if (!n) return;
-        if (await admin({ action: "set_role", num: n, role: e.target.value }))
-          toast("Role updated ✓");
-        else teamView();
+        const t = e.target;
+        if (t.id === "td") {
+          $("#tm1").checked = t.value !== "foh";
+          $("#tm2").checked = t.value !== "boh";
+          return;
+        }
+        const n = t.dataset.ur;
+        if (n) {
+          if (await admin({ action: "set_role", num: n, role: t.value }))
+            toast("Role updated ✓");
+          else teamView();
+          return;
+        }
+        if (
+          t.dataset.ud !== undefined ||
+          t.dataset.um ||
+          t.dataset.ue !== undefined
+        ) {
+          const row = t.closest("[data-row]"),
+            boxes = [...row.querySelectorAll("[data-um]")];
+          if (
+            await admin({
+              action: "set_access",
+              num: row.dataset.row,
+              dept: row.querySelector("[data-ud]").value,
+              modules: boxes.length
+                ? boxes.filter((c) => c.checked).map((c) => c.dataset.um)
+                : ["stock", "toilet"],
+              email: row.querySelector("[data-ue]").value.trim(),
+            })
+          )
+            toast("Saved ✓");
+          else teamView();
+        }
       };
 
       /* ---------- number picker (scroll wheel) ---------- */
@@ -3579,6 +4093,9 @@
           num: p.staff_num,
           name: p.full_name,
           role: p.role,
+          dept: p.dept || "both",
+          modules: p.modules || ["stock", "toilet"],
+          email: p.email || "",
         };
         S.force = !!(
           session.user.user_metadata && session.user.user_metadata.must_change
